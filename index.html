@@ -2,100 +2,70 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tower Defense - Boss & Laser Edition</title>
+    <title>TD: Boss Skill Tree Lock</title>
     <style>
         :root {
             --bg: #020617; --panel: #0f172a; --text: #38bdf8;
             --accent: #3b82f6; --danger: #ef4444; --money: #fbbf24;
-            --success: #10b981; --laser: #f43f5e;
+            --success: #10b981; --special: #c084fc;
         }
-        body {
-            margin: 0; background-color: var(--bg); color: #f8fafc;
-            font-family: 'Inter', sans-serif; display: flex; flex-direction: column; align-items: center;
-        }
-        #ui-top {
-            padding: 15px; font-size: 24px; display: flex; gap: 40px;
-            background: var(--panel); width: 100%; justify-content: center; border-bottom: 2px solid #1e293b;
-        }
-        #game-area { position: relative; display: flex; padding: 20px; gap: 25px; }
-        canvas { background-color: #064e3b; border: 2px solid #334155; border-radius: 8px; cursor: crosshair; }
+        body { margin: 0; background: var(--bg); color: #f8fafc; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; }
+        #ui-top { padding: 15px; font-size: 20px; display: flex; gap: 30px; background: var(--panel); width: 100%; justify-content: center; border-bottom: 2px solid #1e293b; }
+        #game-area { display: flex; padding: 20px; gap: 20px; }
+        canvas { background: #064e3b; border: 2px solid #334155; border-radius: 8px; }
         
-        #side-panel {
-            width: 320px; background: var(--panel); padding: 20px; border-radius: 12px;
-            display: flex; flex-direction: column; gap: 8px; border: 1px solid #1e293b;
-        }
+        #side-panel { width: 360px; background: var(--panel); padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
+        
+        #skill-tree { background: #020617; padding: 15px; border-radius: 8px; border: 1px solid var(--special); margin-bottom: 10px; }
+        #skill-lock-msg { font-size: 10px; color: var(--danger); margin-top: 5px; text-align: center; }
+        .skill-node { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+        .skill-btn { background: var(--special); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .skill-btn:disabled { background: #334155; opacity: 0.5; cursor: not-allowed; }
 
-        .tower-option {
-            background: #1e293b; padding: 12px; border-radius: 8px; cursor: pointer;
-            border: 1px solid #334155; transition: 0.2s;
-        }
-        .tower-option:hover { border-color: var(--accent); }
+        .tower-option { background: #1e293b; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid #334155; }
         .tower-option.selected { border-color: var(--text); background: #020617; }
-
-        .price-tag { color: var(--money); font-weight: bold; float: right; }
-
-        #upgrade-menu {
-            margin-top: 5px; padding: 15px; background: #020617;
-            border-radius: 8px; display: none; border: 1px solid var(--success);
-        }
-        .up-btn {
-            width: 100%; padding: 8px; margin-top: 5px; cursor: pointer; border: none; 
-            border-radius: 4px; font-weight: 700; background: var(--success); color: white;
-        }
-        .up-btn:disabled { background: #334155; opacity: 0.5; }
-        
-        .btn-main {
-            width: 100%; padding: 12px; cursor: pointer; border: none; 
-            color: white; font-weight: 800; border-radius: 8px; margin-top: 5px;
-        }
-        #boss-warning {
-            color: var(--danger); font-weight: bold; text-align: center; display: none;
-            animation: blink 1s infinite; margin-bottom: 10px;
-        }
-        @keyframes blink { 0% {opacity:1} 50% {opacity:0} 100% {opacity:1} }
+        #upgrade-menu { margin-top: 10px; padding: 15px; background: #020617; border-radius: 8px; display: none; border: 1px solid var(--accent); }
+        .path-btn { width: 100%; padding: 10px; margin-top: 8px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; color: white; }
+        .btn-main { width: 100%; padding: 15px; cursor: pointer; border: none; color: white; font-weight: 800; border-radius: 8px; background: var(--success); font-size: 16px; }
     </style>
 </head>
 <body>
 
 <div id="ui-top">
-    <span>💰 <b id="money-display">500</b></span>
-    <span>❤️ <b id="lives-display">15</b></span>
+    <span>💰 <b id="money-display">1000</b></span>
+    <span>❤️ <b id="lives-display">20</b></span>
     <span>👾 Bølge: <b id="wave-display">0</b></span>
+    <span>✨ SP: <b id="sp-display" style="color:var(--special)">0</b></span>
 </div>
 
 <div id="game-area">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
-
+    
     <div id="side-panel">
-        <div id="boss-warning">⚠️ BOSS-RUNDE KOMMER! ⚠️</div>
-        <h3 style="margin:0">Arsenal</h3>
-        <div class="tower-option" onclick="selectTower('basic', 250)" id="tower-basic">
-            <b>Standard</b> <span class="price-tag">250g</span>
+        <div id="skill-tree">
+            <h4 style="margin:0 0 5px 0; color:var(--special)">Skill Tree (Kun etter Boss)</h4>
+            <div id="skill-lock-msg">LÅST: Bekjemp en boss (hver 10. bølge)</div>
+            <div class="skill-node"><span>💰 Bounty (+Startgull)</span><button class="skill-btn s-node" onclick="buySkill('bounty')" disabled>UP</button></div>
+            <div class="skill-node"><span>🛡️ Fortress (+Liv)</span><button class="skill-btn s-node" onclick="buySkill('fortress')" disabled>UP</button></div>
+            <div class="skill-node"><span>🏗️ Architect (Billigere)</span><button class="skill-btn s-node" onclick="buySkill('architect')" disabled>UP</button></div>
         </div>
-        <div class="tower-option" onclick="selectTower('sniper', 600)" id="tower-sniper">
-            <b>Sniper</b> <span class="price-tag">600g</span>
-        </div>
-        <div class="tower-option" onclick="selectTower('bomb', 500)" id="tower-bomb">
-            <b>Artilleri</b> <span class="price-tag">500g</span>
-        </div>
-        <div class="tower-option" onclick="selectTower('frost', 400)" id="tower-frost">
-            <b>Frost</b> <span class="price-tag">400g</span>
-        </div>
-        <div class="tower-option" onclick="selectTower('laser', 1000)" id="tower-laser">
-            <b>Laser (Boss Killer)</b> <span class="price-tag">1000g</span>
+
+        <div id="shop">
+            <div class="tower-option" onclick="selectTower('basic', 200)" id="tower-basic">Standard <span style="float:right">200g</span></div>
+            <div class="tower-option" onclick="selectTower('sniper', 500)" id="tower-sniper">Sniper <span style="float:right">500g</span></div>
+            <div class="tower-option" onclick="selectTower('mine', 400)" id="tower-mine">Gullgruve <span style="float:right">400g</span></div>
         </div>
 
         <div id="upgrade-menu">
-            <h4 id="up-title" style="margin:0; color:var(--text)">Oppgrader</h4>
-            <button id="btn-dmg" class="up-btn" onclick="applyUpgrade('damage')">Skade (<span id="cost-dmg">400</span>g)</button>
-            <button id="btn-spd" class="up-btn" onclick="applyUpgrade('speed')">Fart (<span id="cost-spd">400</span>g)</button>
-            <button id="btn-rng" class="up-btn" onclick="applyUpgrade('range')">Rekkevidde (<span id="cost-rng">400</span>g)</button>
+            <h4 id="up-title" style="margin:0">Spesialisering</h4>
+            <div id="path-selection">
+                <button id="p1" class="path-btn" style="background:var(--danger)" onclick="evolve(1)"></button>
+                <button id="p2" class="path-btn" style="background:var(--accent)" onclick="evolve(2)"></button>
+                <button id="p3" class="path-btn" style="background:var(--special)" onclick="evolve(3)"></button>
+            </div>
         </div>
 
-        <button onclick="nextWave()" class="btn-main" style="background:#10b981; margin-top:20px;">NESTE BØLGE</button>
-        <button id="speed-btn" class="btn-main" style="background:#f59e0b;" onclick="toggleSpeed()">HASTIGHET: 1x</button>
-        <button id="auto-btn" class="btn-main" style="background:#6366f1;" onclick="toggleAuto()">AUTO-START: AV</button>
+        <button onclick="nextWave()" class="btn-main">NESTE BØLGE</button>
     </div>
 </div>
 
@@ -104,33 +74,32 @@
     const ctx = canvas.getContext('2d');
     const gridSize = 40;
     
-    let money = 500;
-    let lives = 15;
-    let wave = 0;
-    let autoStart = false;
-    let gameSpeed = 1;
-    let selectedTowerType = null;
-    let selectedTowerCost = 0;
-    let activeTower = null;
+    let money = 1000, lives = 20, wave = 0, skillPoints = 0;
+    let skills = { bounty: 0, fortress: 0, architect: 0 };
+    let skillTreeOpen = false;
     
-    let towers = [];
-    let enemies = [];
-    let bullets = [];
-    let explosions = [];
-    let waypoints = [{x:0,y:100}, {x:520,y:100}, {x:520,y:300}, {x:120,y:300}, {x:120,y:500}, {x:800,y:500}];
-    let gameActive = true;
+    let towers = [], enemies = [], bullets = [], selectedTowerType = null, selectedTowerCost = 0, activeTower = null;
+    const waypoints = [{x:0,y:100}, {x:520,y:100}, {x:520,y:300}, {x:120,y:300}, {x:120,y:500}, {x:800,y:500}];
 
-    const baseStats = {
-        'basic': { name: "Standard", range: 140, fireRate: 30, color: '#38bdf8', damage: 40, type: 'attack' },
-        'sniper': { name: "Sniper", range: 350, fireRate: 120, color: '#facc15', damage: 250, type: 'attack' },
-        'bomb': { name: "Artilleri", range: 150, fireRate: 80, color: '#f87171', damage: 100, type: 'aoe', aoeRadius: 70 },
-        'frost': { name: "Frost", range: 120, fireRate: 40, color: '#60a5fa', damage: 2, type: 'frost' },
-        'laser': { name: "Laser", range: 180, fireRate: 5, color: '#f43f5e', damage: 10, type: 'laser' }
+    const towerPaths = {
+        'basic': [{name:"Minigun",desc:"Fart",cost:400},{name:"Shock",desc:"Stun",cost:400},{name:"Ricochet",desc:"Sprett",cost:400}],
+        'sniper': [{name:"Railgun",desc:"Damage",cost:600},{name:"EagleEye",desc:"Range",cost:600},{name:"Bounty",desc:"Gull",cost:600}],
+        'mine': [{name:"Market",desc:"+150g",cost:350},{name:"Crypto",desc:"Killbonus",cost:500},{name:"Bank",desc:"Rente",cost:600}]
     };
 
+    function buySkill(type) {
+        if (skillPoints > 0 && skillTreeOpen) {
+            skillPoints--;
+            skills[type]++;
+            if (type === 'bounty') money += 500;
+            if (type === 'fortress') lives += 10;
+            updateUI();
+        }
+    }
+
     function selectTower(type, cost) {
-        selectedTowerType = type;
-        selectedTowerCost = cost;
+        let finalCost = cost - (skills.architect * 40);
+        selectedTowerType = type; selectedTowerCost = Math.max(50, finalCost);
         activeTower = null;
         document.getElementById('upgrade-menu').style.display = 'none';
         document.querySelectorAll('.tower-option').forEach(el => el.classList.remove('selected'));
@@ -139,216 +108,130 @@
 
     canvas.addEventListener('mousedown', (e) => {
         const rect = canvas.getBoundingClientRect();
-        const rawX = e.clientX - rect.left;
-        const rawY = e.clientY - rect.top;
-        const gridX = Math.floor(rawX / gridSize) * gridSize + gridSize/2;
-        const gridY = Math.floor(rawY / gridSize) * gridSize + gridSize/2;
-
-        const clickedTower = towers.find(t => t.x === gridX && t.y === gridY);
-        if (clickedTower) {
-            activeTower = clickedTower;
-            showUpgradeMenu();
-        } else if (selectedTowerType && money >= selectedTowerCost) {
-            if (isOverPath(gridX, gridY)) return;
-            towers.push({
-                x: gridX, y: gridY, ...JSON.parse(JSON.stringify(baseStats[selectedTowerType])),
-                upgrades: { damage: 0, speed: 0, range: 0 }, timer: 0
-            });
-            money -= selectedTowerCost;
-            updateUI();
+        const gx = Math.floor((e.clientX - rect.left) / gridSize) * gridSize + gridSize/2;
+        const gy = Math.floor((e.clientY - rect.top) / gridSize) * gridSize + gridSize/2;
+        const existing = towers.find(t => t.x === gx && t.y === gy);
+        if (existing) { activeTower = existing; showMenu(); }
+        else if (selectedTowerType && money >= selectedTowerCost) {
+            towers.push({ x: gx, y: gy, type: selectedTowerType, path: 0, timer: 0, ...getStats(selectedTowerType) });
+            money -= selectedTowerCost; updateUI();
         }
     });
 
-    function isOverPath(x, y) {
-        for(let i=0; i < waypoints.length-1; i++) {
-            const p1 = waypoints[i]; const p2 = waypoints[i+1];
-            const buffer = 35;
-            if (x > Math.min(p1.x, p2.x)-buffer && x < Math.max(p1.x, p2.x)+buffer &&
-                y > Math.min(p1.y, p2.y)-buffer && y < Math.max(p1.y, p2.y)+buffer) return true;
-        }
-        return false;
+    function getStats(type) {
+        if(type === 'basic') return { range: 150, fireRate: 30, damage: 45, color: '#38bdf8' };
+        if(type === 'sniper') return { range: 350, fireRate: 110, damage: 300, color: '#facc15' };
+        if(type === 'mine') return { range: 0, fireRate: 0, damage: 0, color: '#10b981', income: 100 };
     }
 
-    function showUpgradeMenu() {
-        document.getElementById('upgrade-menu').style.display = 'block';
-        document.getElementById('up-title').innerText = activeTower.name;
-        updateUpgradeButtons();
-    }
-
-    function updateUpgradeButtons() {
-        ['dmg', 'spd', 'rng'].forEach(p => {
-            const fullPath = p === 'dmg' ? 'damage' : p === 'spd' ? 'speed' : 'range';
-            const cost = 400 * Math.pow(2.2, activeTower.upgrades[fullPath]);
-            document.getElementById('cost-' + p).innerText = Math.floor(cost);
-            document.getElementById('btn-' + p).disabled = money < cost || activeTower.upgrades[fullPath] >= 6;
+    function showMenu() {
+        const menu = document.getElementById('upgrade-menu');
+        menu.style.display = 'block';
+        const paths = towerPaths[activeTower.type];
+        [1,2,3].forEach(i => {
+            const btn = document.getElementById('p'+i);
+            const pData = paths[i-1];
+            btn.innerText = `${pData.name} (${pData.cost}g)`;
+            btn.disabled = money < pData.cost || activeTower.path !== 0;
+            btn.style.display = (activeTower.path === 0 || activeTower.path === i) ? 'block' : 'none';
         });
     }
 
-    function applyUpgrade(path) {
-        const cost = 400 * Math.pow(2.2, activeTower.upgrades[path]);
-        if (money >= cost) {
-            money -= cost;
-            activeTower.upgrades[path]++;
-            if (path === 'damage') activeTower.damage *= 1.6;
-            if (path === 'speed') activeTower.fireRate *= 0.8;
-            if (path === 'range') activeTower.range += 40;
-            updateUpgradeButtons();
-            updateUI();
+    function evolve(idx) {
+        const pData = towerPaths[activeTower.type][idx-1];
+        if (money >= pData.cost) {
+            money -= pData.cost;
+            activeTower.path = idx;
+            if (activeTower.type === 'mine') { if (idx === 1) activeTower.income += 150; if (idx === 3) activeTower.interest = 0.05; }
+            if (activeTower.type === 'basic' && idx === 1) activeTower.fireRate /= 2.5;
+            if (activeTower.type === 'sniper' && idx === 1) activeTower.damage *= 3;
+            updateUI(); showMenu();
         }
     }
 
     function nextWave() {
         if (enemies.length > 0) return;
-        wave++;
-        updateUI();
         
-        const isBossWave = wave % 10 === 0;
-        document.getElementById('boss-warning').style.display = (wave % 10 === 9) ? 'block' : 'none';
+        // Steng Skill Tree når bølgen starter
+        skillTreeOpen = false;
+        updateSkillButtons();
 
-        if (isBossWave) {
-            enemies.push({
-                x: waypoints[0].x, y: waypoints[0].y,
-                health: 2000 * Math.pow(1.5, (wave/10)), speed: 0.5, color: '#ffffff',
-                maxHealth: 2000 * Math.pow(1.5, (wave/10)), targetIdx: 1, type: 'boss', size: 30
-            });
-        } else {
-            const count = 8 + (wave * 2);
-            for (let i = 0; i < count; i++) {
-                setTimeout(() => {
-                    let type = "standard";
-                    if (i % 6 === 0 && wave > 3) type = "tank";
-                    if (i % 4 === 0 && wave > 2) type = "scout";
+        wave++;
+        towers.forEach(t => { if (t.type === 'mine') { money += t.income; if (t.interest) money += (money * t.interest); } });
 
-                    const stats = {
-                        standard: { health: 100 + (wave * 60), speed: 1.4, color: '#f43f5e', size: 14 },
-                        tank: { health: 400 + (wave * 200), speed: 0.7, color: '#a855f7', size: 18 },
-                        scout: { health: 50 + (wave * 30), speed: 2.8, color: '#fbbf24', size: 10 }
-                    }[type];
-
-                    enemies.push({
-                        x: waypoints[0].x, y: waypoints[0].y, ...stats,
-                        maxHealth: stats.health, targetIdx: 1, slowTimer: 0, type: type
-                    });
-                }, (i * 400) / gameSpeed);
-            }
+        updateUI();
+        for (let i = 0; i < 10 + wave; i++) {
+            setTimeout(() => {
+                let isB = (wave % 10 === 0 && i === 0);
+                let h = (100 + wave*60) * (isB ? 12 : 1);
+                enemies.push({ x: 0, y: 100, health: h, maxH: h, speed: 1.3, targetIdx: 1, isBoss: isB });
+            }, i * 400);
         }
     }
 
-    function toggleSpeed() { gameSpeed = gameSpeed === 1 ? 2 : 1; document.getElementById('speed-btn').innerText = "HASTIGHET: " + gameSpeed + "x"; }
-    function toggleAuto() { autoStart = !autoStart; document.getElementById('auto-btn').innerText = "AUTO-START: " + (autoStart ? "PÅ" : "AV"); }
+    function updateSkillButtons() {
+        const btns = document.querySelectorAll('.s-node');
+        const msg = document.getElementById('skill-lock-msg');
+        btns.forEach(b => b.disabled = !skillTreeOpen || skillPoints <= 0);
+        msg.innerText = skillTreeOpen ? "TILGJENGELIG!" : "LÅST: Bekjemp en boss (hver 10. bølge)";
+        msg.style.color = skillTreeOpen ? "var(--success)" : "var(--danger)";
+    }
 
     function updateUI() {
         document.getElementById('money-display').innerText = Math.floor(money);
         document.getElementById('lives-display').innerText = lives;
         document.getElementById('wave-display').innerText = wave;
-    }
-
-    function updateLogic() {
-        enemies.forEach((enemy, index) => {
-            const target = waypoints[enemy.targetIdx];
-            const dist = Math.hypot(target.x - enemy.x, target.y - enemy.y);
-            let s = enemy.slowTimer > 0 ? enemy.speed * 0.5 : enemy.speed;
-            if (enemy.slowTimer > 0) enemy.slowTimer--;
-
-            if (dist < 5) {
-                enemy.targetIdx++;
-                if (enemy.targetIdx >= waypoints.length) {
-                    lives -= (enemy.type === 'boss' ? 5 : 1);
-                    enemies.splice(index, 1); updateUI(); return;
-                }
-            }
-            enemy.x += ((target.x - enemy.x) / dist) * s;
-            enemy.y += ((target.y - enemy.y) / dist) * s;
-        });
-
-        towers.forEach(t => {
-            t.timer++;
-            if (t.timer >= t.fireRate) {
-                // Laser prioriterer fienden med mest helse innen rekkevidde
-                const inRange = enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) < t.range);
-                const target = t.type === 'laser' ? inRange.sort((a,b) => b.health - a.health)[0] : inRange[0];
-                
-                if (target) {
-                    if (t.type === 'laser') {
-                        target.health -= t.damage;
-                        ctx.strokeStyle = '#f43f5e'; ctx.lineWidth = 3;
-                        ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(target.x, target.y); ctx.stroke();
-                    } else {
-                        bullets.push({x: t.x, y: t.y, target, damage: t.damage, type: t.type, aoeRadius: t.aoeRadius, color: t.color});
-                    }
-                    t.timer = 0;
-                }
-            }
-        });
-
-        bullets.forEach((b, i) => {
-            const dist = Math.hypot(b.target.x - b.x, b.target.y - b.y);
-            if (dist < 10 || !enemies.includes(b.target)) {
-                if (enemies.includes(b.target)) {
-                    if (b.type === 'frost') b.target.slowTimer = 50;
-                    if (b.type === 'aoe') {
-                        explosions.push({x: b.target.x, y: b.target.y, radius: b.aoeRadius, timer: 0});
-                        enemies.forEach(e => { if (Math.hypot(e.x - b.target.x, e.y - b.target.y) < b.aoeRadius) e.health -= b.damage; });
-                    } else b.target.health -= b.damage;
-                    
-                    enemies = enemies.filter(e => {
-                        if (e.health <= 0) { money += (e.type === 'boss' ? 500 : 15); return false; }
-                        return true;
-                    });
-                    updateUI();
-                }
-                bullets.splice(i, 1); return;
-            }
-            b.x += ((b.target.x - b.x) / dist) * 15;
-            b.y += ((b.target.y - b.y) / dist) * 15;
-        });
-
-        explosions.forEach((exp, i) => { exp.timer++; if (exp.timer >= 15) explosions.splice(i, 1); });
-        if (autoStart && enemies.length === 0) nextWave();
-        if (lives <= 0) { alert("Base ødelagt! Bølge: " + wave); location.reload(); }
-    }
-
-    function render() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // Grid
-        ctx.strokeStyle = "rgba(255,255,255,0.03)";
-        for(let x=0; x<canvas.width; x+=gridSize) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
-        for(let y=0; y<canvas.height; y+=gridSize) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
-
-        // Bane
-        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 45; ctx.lineJoin = "round";
-        ctx.beginPath(); ctx.moveTo(waypoints[0].x, waypoints[0].y);
-        waypoints.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
-
-        // Fiender
-        enemies.forEach(e => {
-            ctx.fillStyle = e.color; ctx.beginPath(); ctx.arc(e.x, e.y, e.size, 0, Math.PI*2); ctx.fill();
-            if(e.type === 'boss') { ctx.strokeStyle = 'gold'; ctx.lineWidth = 2; ctx.stroke(); }
-            ctx.fillStyle = '#10b981'; ctx.fillRect(e.x-15, e.y-e.size-10, (e.health/e.maxHealth)*30, 5);
-        });
-
-        // Tårn
-        towers.forEach(t => {
-            ctx.fillStyle = t.color; ctx.fillRect(t.x-15, t.y-15, 30, 30);
-            if (activeTower === t) {
-                ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI*2); ctx.stroke();
-            }
-        });
-
-        bullets.forEach(b => { ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill(); });
-        explosions.forEach(exp => {
-            ctx.fillStyle = `rgba(248, 113, 113, ${1 - exp.timer/15})`;
-            ctx.beginPath(); ctx.arc(exp.x, exp.y, exp.radius * (exp.timer/15), 0, Math.PI*2); ctx.fill();
-        });
+        document.getElementById('sp-display').innerText = skillPoints;
+        updateSkillButtons();
     }
 
     function gameLoop() {
-        for (let s = 0; s < gameSpeed; s++) updateLogic();
-        render();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 40; ctx.lineJoin = "round";
+        ctx.beginPath(); ctx.moveTo(0, 100);
+        waypoints.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+
+        enemies.forEach((e, i) => {
+            const target = waypoints[e.targetIdx];
+            const dist = Math.hypot(target.x - e.x, target.y - e.y);
+            if (dist < 5) { e.targetIdx++; if (e.targetIdx >= waypoints.length) { lives -= e.isBoss ? 5 : 1; enemies.splice(i, 1); updateUI(); return; } }
+            e.x += ((target.x - e.x) / dist) * e.speed;
+            e.y += ((target.y - e.y) / dist) * e.speed;
+            ctx.fillStyle = e.isBoss ? '#ffffff' : '#f43f5e';
+            ctx.beginPath(); ctx.arc(e.x, e.y, e.isBoss ? 25 : 12, 0, Math.PI*2); ctx.fill();
+        });
+
+        towers.forEach(t => {
+            if (t.type !== 'mine') {
+                t.timer++;
+                if (t.timer >= t.fireRate) {
+                    const target = enemies.find(e => Math.hypot(e.x - t.x, e.y - t.y) < t.range);
+                    if (target) { target.health -= t.damage; bullets.push({x: t.x, y: t.y, tx: target.x, ty: target.y, life: 5, color: t.color}); t.timer = 0; }
+                }
+            }
+            ctx.fillStyle = t.color; ctx.fillRect(t.x-15, t.y-15, 30, 30);
+        });
+
+        bullets = bullets.filter(b => {
+            ctx.strokeStyle = b.color; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.tx, b.ty); ctx.stroke();
+            return --b.life > 0;
+        });
+
+        enemies = enemies.filter(e => { 
+            if(e.health <= 0) { 
+                money += 20; 
+                if(e.isBoss) { 
+                    skillPoints++; 
+                    skillTreeOpen = true; // ÅPNE SKILL TREE
+                } 
+                return false; 
+            } 
+            return true; 
+        });
+
+        if (lives <= 0) { alert("Game Over!"); location.reload(); }
         requestAnimationFrame(gameLoop);
     }
-
     updateUI();
     gameLoop();
 </script>
