@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <title>TD: Boss Skill Tree Lock</title>
+    <title>TD: Ultimate Edition</title>
     <style>
         :root {
             --bg: #020617; --panel: #0f172a; --text: #38bdf8;
@@ -12,21 +12,25 @@
         body { margin: 0; background: var(--bg); color: #f8fafc; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; }
         #ui-top { padding: 15px; font-size: 20px; display: flex; gap: 30px; background: var(--panel); width: 100%; justify-content: center; border-bottom: 2px solid #1e293b; }
         #game-area { display: flex; padding: 20px; gap: 20px; }
-        canvas { background: #064e3b; border: 2px solid #334155; border-radius: 8px; }
+        canvas { background: #064e3b; border: 2px solid #334155; border-radius: 8px; cursor: crosshair; }
         
-        #side-panel { width: 360px; background: var(--panel); padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
+        #side-panel { width: 360px; background: var(--panel); padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; height: 85vh; overflow-y: auto; }
         
-        #skill-tree { background: #020617; padding: 15px; border-radius: 8px; border: 1px solid var(--special); margin-bottom: 10px; }
-        #skill-lock-msg { font-size: 10px; color: var(--danger); margin-top: 5px; text-align: center; }
-        .skill-node { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
-        .skill-btn { background: var(--special); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .skill-btn:disabled { background: #334155; opacity: 0.5; cursor: not-allowed; }
+        #skill-tree { background: #020617; padding: 12px; border-radius: 8px; border: 1px solid var(--special); }
+        .skill-node { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-size: 12px; }
+        .skill-btn { background: var(--special); border: none; color: white; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
+        .skill-btn:disabled { opacity: 0.3; }
 
-        .tower-option { background: #1e293b; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid #334155; }
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .tower-option { background: #1e293b; padding: 10px; border-radius: 8px; cursor: pointer; border: 1px solid #334155; font-size: 13px; }
         .tower-option.selected { border-color: var(--text); background: #020617; }
-        #upgrade-menu { margin-top: 10px; padding: 15px; background: #020617; border-radius: 8px; display: none; border: 1px solid var(--accent); }
-        .path-btn { width: 100%; padding: 10px; margin-top: 8px; cursor: pointer; border: none; border-radius: 6px; font-weight: bold; color: white; }
-        .btn-main { width: 100%; padding: 15px; cursor: pointer; border: none; color: white; font-weight: 800; border-radius: 8px; background: var(--success); font-size: 16px; }
+        
+        #upgrade-menu { padding: 12px; background: #020617; border-radius: 8px; display: none; border: 1px solid var(--accent); }
+        .path-btn { width: 100%; padding: 8px; margin-top: 5px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; font-size: 11px; }
+        
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn-main { padding: 12px; cursor: pointer; border: none; color: white; font-weight: 800; border-radius: 8px; background: var(--success); }
+        .btn-ctrl { padding: 8px; cursor: pointer; border: none; color: white; border-radius: 8px; background: #475569; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -43,21 +47,24 @@
     
     <div id="side-panel">
         <div id="skill-tree">
-            <h4 style="margin:0 0 5px 0; color:var(--special)">Skill Tree (Kun etter Boss)</h4>
-            <div id="skill-lock-msg">LÅST: Bekjemp en boss (hver 10. bølge)</div>
-            <div class="skill-node"><span>💰 Bounty (+Startgull)</span><button class="skill-btn s-node" onclick="buySkill('bounty')" disabled>UP</button></div>
-            <div class="skill-node"><span>🛡️ Fortress (+Liv)</span><button class="skill-btn s-node" onclick="buySkill('fortress')" disabled>UP</button></div>
-            <div class="skill-node"><span>🏗️ Architect (Billigere)</span><button class="skill-btn s-node" onclick="buySkill('architect')" disabled>UP</button></div>
+            <h4 style="margin:0; color:var(--special); font-size:14px;">Skill Tree (Etter Boss)</h4>
+            <div class="skill-node"><span>💰 Bounty</span><button class="skill-btn s-node" onclick="buySkill('bounty')" disabled>UP</button></div>
+            <div class="skill-node"><span>🛡️ Fortress</span><button class="skill-btn s-node" onclick="buySkill('fortress')" disabled>UP</button></div>
+            <div class="skill-node"><span>🏗️ Architect</span><button class="skill-btn s-node" onclick="buySkill('architect')" disabled>UP</button></div>
         </div>
 
-        <div id="shop">
-            <div class="tower-option" onclick="selectTower('basic', 200)" id="tower-basic">Standard <span style="float:right">200g</span></div>
-            <div class="tower-option" onclick="selectTower('sniper', 500)" id="tower-sniper">Sniper <span style="float:right">500g</span></div>
-            <div class="tower-option" onclick="selectTower('mine', 400)" id="tower-mine">Gullgruve <span style="float:right">400g</span></div>
+        <h3 style="margin:5px 0">Butikk</h3>
+        <div class="shop-grid">
+            <div class="tower-option" onclick="selectTower('basic', 200)" id="tower-basic">Standard (200)</div>
+            <div class="tower-option" onclick="selectTower('sniper', 500)" id="tower-sniper">Sniper (500)</div>
+            <div class="tower-option" onclick="selectTower('bomb', 450)" id="tower-bomb">Bombe (450)</div>
+            <div class="tower-option" onclick="selectTower('tesla', 600)" id="tower-tesla">Tesla (600)</div>
+            <div class="tower-option" onclick="selectTower('frost', 350)" id="tower-frost">Frost (350)</div>
+            <div class="tower-option" onclick="selectTower('mine', 400)" id="tower-mine">Gruve (400)</div>
         </div>
 
         <div id="upgrade-menu">
-            <h4 id="up-title" style="margin:0">Spesialisering</h4>
+            <h4 id="up-title" style="margin:0">Oppgrader</h4>
             <div id="path-selection">
                 <button id="p1" class="path-btn" style="background:var(--danger)" onclick="evolve(1)"></button>
                 <button id="p2" class="path-btn" style="background:var(--accent)" onclick="evolve(2)"></button>
@@ -66,6 +73,10 @@
         </div>
 
         <button onclick="nextWave()" class="btn-main">NESTE BØLGE</button>
+        <div class="controls">
+            <button id="speed-btn" class="btn-ctrl" onclick="toggleSpeed()">Fart: 1x</button>
+            <button id="auto-btn" class="btn-ctrl" onclick="toggleAuto()">Auto: AV</button>
+        </div>
     </div>
 </div>
 
@@ -75,33 +86,24 @@
     const gridSize = 40;
     
     let money = 1000, lives = 20, wave = 0, skillPoints = 0;
-    let skills = { bounty: 0, fortress: 0, architect: 0 };
-    let skillTreeOpen = false;
-    
+    let gameSpeed = 1, autoStart = false, skillTreeOpen = false;
     let towers = [], enemies = [], bullets = [], selectedTowerType = null, selectedTowerCost = 0, activeTower = null;
-    const waypoints = [{x:0,y:100}, {x:520,y:100}, {x:520,y:300}, {x:120,y:300}, {x:120,y:500}, {x:800,y:500}];
+    let waypoints = [{x:0,y:100}, {x:520,y:100}, {x:520,y:300}, {x:120,y:300}, {x:120,y:500}, {x:800,y:500}];
+    let skills = { bounty: 0, fortress: 0, architect: 0 };
 
     const towerPaths = {
-        'basic': [{name:"Minigun",desc:"Fart",cost:400},{name:"Shock",desc:"Stun",cost:400},{name:"Ricochet",desc:"Sprett",cost:400}],
-        'sniper': [{name:"Railgun",desc:"Damage",cost:600},{name:"EagleEye",desc:"Range",cost:600},{name:"Bounty",desc:"Gull",cost:600}],
-        'mine': [{name:"Market",desc:"+150g",cost:350},{name:"Crypto",desc:"Killbonus",cost:500},{name:"Bank",desc:"Rente",cost:600}]
+        'basic': [{name:"Minigun",cost:400},{name:"Stun",cost:400},{name:"Ricochet",cost:400}],
+        'sniper': [{name:"Railgun",cost:600},{name:"EagleEye",cost:600},{name:"Bounty",cost:600}],
+        'bomb': [{name:"Nuke",cost:500},{name:"Cluster",cost:500},{name:"Napalm",cost:500}],
+        'tesla': [{name:"Chain",cost:700},{name:"HighVolt",cost:700},{name:"Overload",cost:700}],
+        'frost': [{name:"DeepFreeze",cost:400},{name:"Blizzard",cost:400},{name:"Shatter",cost:400}],
+        'mine': [{name:"Market",cost:400},{name:"Crypto",cost:400},{name:"Bank",cost:400}]
     };
 
-    function buySkill(type) {
-        if (skillPoints > 0 && skillTreeOpen) {
-            skillPoints--;
-            skills[type]++;
-            if (type === 'bounty') money += 500;
-            if (type === 'fortress') lives += 10;
-            updateUI();
-        }
-    }
-
     function selectTower(type, cost) {
-        let finalCost = cost - (skills.architect * 40);
+        let finalCost = cost - (skills.architect * 50);
         selectedTowerType = type; selectedTowerCost = Math.max(50, finalCost);
-        activeTower = null;
-        document.getElementById('upgrade-menu').style.display = 'none';
+        activeTower = null; document.getElementById('upgrade-menu').style.display = 'none';
         document.querySelectorAll('.tower-option').forEach(el => el.classList.remove('selected'));
         document.getElementById('tower-' + type).classList.add('selected');
     }
@@ -113,14 +115,27 @@
         const existing = towers.find(t => t.x === gx && t.y === gy);
         if (existing) { activeTower = existing; showMenu(); }
         else if (selectedTowerType && money >= selectedTowerCost) {
+            if (isOverPath(gx, gy)) return;
             towers.push({ x: gx, y: gy, type: selectedTowerType, path: 0, timer: 0, ...getStats(selectedTowerType) });
             money -= selectedTowerCost; updateUI();
         }
     });
 
+    function isOverPath(x, y) {
+        for(let i=0; i < waypoints.length-1; i++) {
+            const p1 = waypoints[i], p2 = waypoints[i+1];
+            const buf = 25;
+            if (x > Math.min(p1.x, p2.x)-buf && x < Math.max(p1.x, p2.x)+buf && y > Math.min(p1.y, p2.y)-buf && y < Math.max(p1.y, p2.y)+buf) return true;
+        }
+        return false;
+    }
+
     function getStats(type) {
-        if(type === 'basic') return { range: 150, fireRate: 30, damage: 45, color: '#38bdf8' };
-        if(type === 'sniper') return { range: 350, fireRate: 110, damage: 300, color: '#facc15' };
+        if(type === 'basic') return { range: 150, fireRate: 30, damage: 40, color: '#38bdf8' };
+        if(type === 'sniper') return { range: 350, fireRate: 100, damage: 250, color: '#facc15' };
+        if(type === 'bomb') return { range: 140, fireRate: 80, damage: 100, color: '#f87171', aoe: 70 };
+        if(type === 'tesla') return { range: 120, fireRate: 40, damage: 60, color: '#c084fc', chain: 2 };
+        if(type === 'frost') return { range: 110, fireRate: 50, damage: 5, color: '#60a5fa', slow: 0.5 };
         if(type === 'mine') return { range: 0, fireRate: 0, damage: 0, color: '#10b981', income: 100 };
     }
 
@@ -140,98 +155,109 @@
     function evolve(idx) {
         const pData = towerPaths[activeTower.type][idx-1];
         if (money >= pData.cost) {
-            money -= pData.cost;
-            activeTower.path = idx;
-            if (activeTower.type === 'mine') { if (idx === 1) activeTower.income += 150; if (idx === 3) activeTower.interest = 0.05; }
+            money -= pData.cost; activeTower.path = idx;
+            if (activeTower.type === 'mine' && idx === 1) activeTower.income += 150;
             if (activeTower.type === 'basic' && idx === 1) activeTower.fireRate /= 2.5;
-            if (activeTower.type === 'sniper' && idx === 1) activeTower.damage *= 3;
+            if (activeTower.type === 'bomb' && idx === 1) activeTower.aoe *= 2;
+            if (activeTower.type === 'tesla' && idx === 1) activeTower.chain += 3;
             updateUI(); showMenu();
         }
     }
 
     function nextWave() {
         if (enemies.length > 0) return;
-        
-        // Steng Skill Tree når bølgen starter
-        skillTreeOpen = false;
-        updateSkillButtons();
-
-        wave++;
-        towers.forEach(t => { if (t.type === 'mine') { money += t.income; if (t.interest) money += (money * t.interest); } });
-
+        skillTreeOpen = false; wave++;
+        towers.forEach(t => { if (t.type === 'mine') money += t.income; });
         updateUI();
         for (let i = 0; i < 10 + wave; i++) {
             setTimeout(() => {
                 let isB = (wave % 10 === 0 && i === 0);
-                let h = (100 + wave*60) * (isB ? 12 : 1);
-                enemies.push({ x: 0, y: 100, health: h, maxH: h, speed: 1.3, targetIdx: 1, isBoss: isB });
-            }, i * 400);
+                let h = (100 + wave*70) * (isB ? 15 : 1);
+                enemies.push({ x: 0, y: 100, health: h, maxH: h, speed: 1.2, targetIdx: 1, isBoss: isB, slowTimer: 0 });
+            }, (i * 450) / gameSpeed);
         }
     }
 
-    function updateSkillButtons() {
-        const btns = document.querySelectorAll('.s-node');
-        const msg = document.getElementById('skill-lock-msg');
-        btns.forEach(b => b.disabled = !skillTreeOpen || skillPoints <= 0);
-        msg.innerText = skillTreeOpen ? "TILGJENGELIG!" : "LÅST: Bekjemp en boss (hver 10. bølge)";
-        msg.style.color = skillTreeOpen ? "var(--success)" : "var(--danger)";
-    }
+    function toggleSpeed() { gameSpeed = gameSpeed === 1 ? 2 : 1; document.getElementById('speed-btn').innerText = `Fart: ${gameSpeed}x`; }
+    function toggleAuto() { autoStart = !autoStart; document.getElementById('auto-btn').innerText = `Auto: ${autoStart ? 'PÅ' : 'AV'}`; }
+    function buySkill(t) { if(skillPoints > 0) { skillPoints--; skills[t]++; if(t==='bounty') money+=1000; if(t==='fortress') lives+=10; updateUI(); } }
 
     function updateUI() {
         document.getElementById('money-display').innerText = Math.floor(money);
         document.getElementById('lives-display').innerText = lives;
         document.getElementById('wave-display').innerText = wave;
         document.getElementById('sp-display').innerText = skillPoints;
-        updateSkillButtons();
+        const btns = document.querySelectorAll('.s-node');
+        btns.forEach(b => b.disabled = !skillTreeOpen || skillPoints <= 0);
     }
 
     function gameLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 40; ctx.lineJoin = "round";
-        ctx.beginPath(); ctx.moveTo(0, 100);
-        waypoints.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+        for(let n=0; n<gameSpeed; n++) {
+            enemies.forEach((e, i) => {
+                const target = waypoints[e.targetIdx];
+                const dist = Math.hypot(target.x - e.x, target.y - e.y);
+                let curSpeed = e.speed;
+                if(e.slowTimer > 0) { curSpeed *= 0.5; e.slowTimer--; }
+                if (dist < 5) { e.targetIdx++; if (e.targetIdx >= waypoints.length) { lives -= e.isBoss ? 5 : 1; enemies.splice(i, 1); updateUI(); return; } }
+                e.x += ((target.x - e.x) / dist) * curSpeed;
+                e.y += ((target.y - e.y) / dist) * curSpeed;
+            });
 
-        enemies.forEach((e, i) => {
-            const target = waypoints[e.targetIdx];
-            const dist = Math.hypot(target.x - e.x, target.y - e.y);
-            if (dist < 5) { e.targetIdx++; if (e.targetIdx >= waypoints.length) { lives -= e.isBoss ? 5 : 1; enemies.splice(i, 1); updateUI(); return; } }
-            e.x += ((target.x - e.x) / dist) * e.speed;
-            e.y += ((target.y - e.y) / dist) * e.speed;
-            ctx.fillStyle = e.isBoss ? '#ffffff' : '#f43f5e';
-            ctx.beginPath(); ctx.arc(e.x, e.y, e.isBoss ? 25 : 12, 0, Math.PI*2); ctx.fill();
-        });
-
-        towers.forEach(t => {
-            if (t.type !== 'mine') {
-                t.timer++;
-                if (t.timer >= t.fireRate) {
-                    const target = enemies.find(e => Math.hypot(e.x - t.x, e.y - t.y) < t.range);
-                    if (target) { target.health -= t.damage; bullets.push({x: t.x, y: t.y, tx: target.x, ty: target.y, life: 5, color: t.color}); t.timer = 0; }
+            towers.forEach(t => {
+                if (t.range > 0) {
+                    t.timer++;
+                    if (t.timer >= t.fireRate) {
+                        const target = enemies.find(e => Math.hypot(e.x - t.x, e.y - t.y) < t.range);
+                        if (target) {
+                            if (t.type === 'bomb') {
+                                enemies.forEach(e => { if(Math.hypot(e.x-target.x, e.y-target.y) < t.aoe) e.health -= t.damage; });
+                            } else if (t.type === 'frost') {
+                                target.slowTimer = 30; target.health -= t.damage;
+                            } else if (t.type === 'tesla') {
+                                let hits = 0;
+                                enemies.forEach(e => { if(hits < t.chain && Math.hypot(e.x-t.x, e.y-t.y) < t.range) { e.health -= t.damage; hits++; }});
+                            } else { target.health -= t.damage; }
+                            bullets.push({x: t.x, y: t.y, tx: target.x, ty: target.y, life: 5, color: t.color});
+                            t.timer = 0;
+                        }
+                    }
                 }
-            }
-            ctx.fillStyle = t.color; ctx.fillRect(t.x-15, t.y-15, 30, 30);
-        });
+            });
 
-        bullets = bullets.filter(b => {
-            ctx.strokeStyle = b.color; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.tx, b.ty); ctx.stroke();
-            return --b.life > 0;
-        });
+            enemies = enemies.filter(e => { 
+                if(e.health <= 0) { money += 20; if(e.isBoss) { skillPoints++; skillTreeOpen = true; } return false; } 
+                return true; 
+            });
+            bullets = bullets.filter(b => --b.life > 0);
+            if(autoStart && enemies.length === 0) nextWave();
+        }
 
-        enemies = enemies.filter(e => { 
-            if(e.health <= 0) { 
-                money += 20; 
-                if(e.isBoss) { 
-                    skillPoints++; 
-                    skillTreeOpen = true; // ÅPNE SKILL TREE
-                } 
-                return false; 
-            } 
-            return true; 
-        });
-
-        if (lives <= 0) { alert("Game Over!"); location.reload(); }
-        requestAnimationFrame(gameLoop);
+        render();
+        if (lives > 0) requestAnimationFrame(gameLoop);
+        else { alert("Game Over!"); location.reload(); }
     }
+
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Grid
+        ctx.strokeStyle = "rgba(255,255,255,0.05)";
+        for(let x=0; x<canvas.width; x+=gridSize) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+        for(let y=0; y<canvas.height; y+=gridSize) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+        // Path
+        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 40; ctx.lineJoin = "round";
+        ctx.beginPath(); ctx.moveTo(0, 100); waypoints.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+        // Units
+        enemies.forEach(e => {
+            ctx.fillStyle = e.isBoss ? '#ffffff' : e.slowTimer > 0 ? '#60a5fa' : '#f43f5e';
+            ctx.beginPath(); ctx.arc(e.x, e.y, e.isBoss ? 22 : 12, 0, Math.PI*2); ctx.fill();
+        });
+        towers.forEach(t => {
+            ctx.fillStyle = t.color; ctx.fillRect(t.x-15, t.y-15, 30, 30);
+            if(activeTower === t) { ctx.strokeStyle = 'white'; ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI*2); ctx.stroke(); }
+        });
+        bullets.forEach(b => { ctx.strokeStyle = b.color; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.tx, b.ty); ctx.stroke(); });
+    }
+
     updateUI();
     gameLoop();
 </script>
