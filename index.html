@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Tower Defense</title>
+    <title>Pro Tower Defense</title>
     <style>
         :root {
-            --bg: #2c3e50;
-            --panel: #34495e;
-            --text: #ecf0f1;
+            --bg: #1a1a2e;
+            --panel: #16213e;
+            --text: #e94560;
+            --accent: #0f3460;
         }
         body {
             margin: 0;
             background-color: var(--bg);
-            color: var(--text);
+            color: #fff;
             font-family: 'Segoe UI', sans-serif;
             display: flex;
             flex-direction: column;
@@ -22,94 +23,128 @@
             overflow: hidden;
         }
         #ui-top {
-            padding: 10px;
-            font-size: 20px;
+            padding: 15px;
+            font-size: 22px;
             display: flex;
-            gap: 20px;
+            gap: 30px;
+            background: var(--panel);
+            width: 100%;
+            justify-content: center;
+            border-bottom: 2px solid var(--text);
         }
         #game-area {
             position: relative;
             display: flex;
-            gap: 10px;
+            padding: 20px;
+            gap: 20px;
         }
         canvas {
-            background-color: #27ae60;
-            border: 5px solid #2ecc71;
-            border-radius: 8px;
-            cursor: crosshair;
+            background-color: #2d5a27;
+            border: 4px solid #3e8e41;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
         #side-panel {
-            width: 200px;
+            width: 250px;
             background: var(--panel);
-            padding: 15px;
-            border-radius: 8px;
+            padding: 20px;
+            border-radius: 12px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            border: 1px solid var(--accent);
         }
         .tower-option {
-            background: #2980b9;
-            padding: 10px;
-            border-radius: 5px;
+            background: var(--accent);
+            padding: 12px;
+            border-radius: 8px;
             cursor: pointer;
-            text-align: center;
+            border: 2px solid transparent;
             transition: 0.2s;
         }
-        .tower-option:hover { background: #3498db; }
-        .tower-option.selected { border: 3px solid white; }
+        .tower-option:hover { border-color: var(--text); }
+        .tower-option.selected { background: var(--text); color: white; }
         
+        #upgrade-menu {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            cursor: pointer;
+            background: #27ae60;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
         #map-selector {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(26, 26, 46, 0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 100;
         }
         .map-btn {
-            padding: 15px 30px;
+            padding: 20px 40px;
             margin: 10px;
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
-            background: #e67e22;
+            background: var(--text);
             border: none;
             color: white;
-            border-radius: 5px;
+            border-radius: 8px;
+            transition: 0.3s;
         }
+        .map-btn:hover { transform: scale(1.1); }
     </style>
 </head>
 <body>
 
 <div id="ui-top">
-    <span>💰 Gull: <b id="money-display">500</b></span>
-    <span>❤️ Liv: <b id="lives-display">20</b></span>
-    <span>👾 Bølge: <b id="wave-display">1</b></span>
+    <span>💰 <b id="money-display">600</b></span>
+    <span>❤️ <b id="lives-display">20</b></span>
+    <span>👾 Bølge: <b id="wave-display">0</b></span>
 </div>
 
 <div id="game-area">
     <div id="map-selector">
-        <h1>Velg Bane</h1>
-        <button class="map-btn" onclick="startGame('S')">Sirkulær Bane (Lett)</button>
-        <button class="map-btn" onclick="startGame('Z')">Z-Bane (Middels)</button>
+        <h1>Velg Ekstrem Bane</h1>
+        <button class="map-btn" onclick="startGame('long1')">Slange-stien (Lang)</button>
+        <button class="map-btn" onclick="startGame('long2')">Labyrinten (Vanskelig)</button>
     </div>
 
-    <canvas id="gameCanvas" width="600" height="400"></canvas>
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
 
     <div id="side-panel">
-        <h3>Tårn</h3>
+        <h3>Butikk</h3>
         <div class="tower-option" onclick="selectTower('basic', 100)" id="tower-basic">
-            Skyter (100g)
+            <b>Skytter</b> (100g)<br><small>Balansert skade</small>
         </div>
-        <div class="tower-option" onclick="selectTower('fast', 200)" id="tower-fast">
-            Rask (200g)
+        <div class="tower-option" onclick="selectTower('sniper', 350)" id="tower-sniper">
+            <b>Snikskytter</b> (350g)<br><small>Lang rekkevidde</small>
         </div>
-        <div class="tower-option" onclick="selectTower('sniper', 400)" id="tower-sniper">
-            Snikskytter (400g)
+        <div class="tower-option" onclick="selectTower('mine', 500)" id="tower-mine">
+            <b>Gullgruve</b> (500g)<br><small>Gir +50g per runde</small>
         </div>
-        <hr>
-        <button onclick="nextWave()" style="padding: 10px; cursor:pointer;">Neste Bølge</button>
+
+        <div id="upgrade-menu">
+            <h4 id="upgrade-title">Tårn</h4>
+            <p id="upgrade-info">Nivå: 1</p>
+            <button id="upgrade-btn" class="btn-action">Oppgrader (200g)</button>
+        </div>
+
+        <button onclick="nextWave()" class="btn-action" style="background:#e67e22; margin-top: auto;">START NESTE BØLGE</button>
     </div>
 </div>
 
@@ -117,29 +152,27 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Spillets tilstand
-    let money = 500;
+    let money = 600;
     let lives = 20;
     let wave = 0;
     let selectedTowerType = null;
     let selectedTowerCost = 0;
+    let selectedPlacedTower = null;
     let towers = [];
     let enemies = [];
     let bullets = [];
     let waypoints = [];
     let gameActive = false;
 
-    // Bane-definisjoner
     const maps = {
-        'S': [{x:0, y:200}, {x:200, y:200}, {x:200, y:100}, {x:400, y:100}, {x:400, y:300}, {x:600, y:300}],
-        'Z': [{x:0, y:50}, {x:550, y:50}, {x:50, y:350}, {x:600, y:350}]
+        'long1': [{x:0,y:100}, {x:700,y:100}, {x:700,y:250}, {x:100,y:250}, {x:100,y:400}, {x:800,y:400}],
+        'long2': [{x:400,y:0}, {x:400,y:80}, {x:100,y:80}, {x:100,y:420}, {x:700,y:420}, {x:700,y:80}, {x:500,y:80}, {x:500,y:500}]
     };
 
-    // Tårn-stats
     const towerStats = {
-        'basic': { range: 120, fireRate: 30, color: '#3498db', damage: 20 },
-        'fast': { range: 80, fireRate: 10, color: '#9b59b6', damage: 10 },
-        'sniper': { range: 250, fireRate: 80, color: '#f1c40f', damage: 100 }
+        'basic': { name: "Skytter", range: 130, fireRate: 30, color: '#3498db', damage: 20, type: 'attack' },
+        'sniper': { name: "Snikskytter", range: 280, fireRate: 90, color: '#f1c40f', damage: 120, type: 'attack' },
+        'mine': { name: "Gullgruve", range: 0, fireRate: 0, color: '#2ecc71', damage: 0, type: 'money' }
     };
 
     function startGame(mapType) {
@@ -153,42 +186,88 @@
     function selectTower(type, cost) {
         selectedTowerType = type;
         selectedTowerCost = cost;
+        selectedPlacedTower = null;
+        document.getElementById('upgrade-menu').style.display = 'none';
         document.querySelectorAll('.tower-option').forEach(el => el.classList.remove('selected'));
         document.getElementById('tower-' + type).classList.add('selected');
     }
 
     canvas.addEventListener('click', (e) => {
-        if (!gameActive || !selectedTowerType) return;
-        
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        if (money >= selectedTowerCost) {
+        // Sjekk om vi klikker på et eksisterende tårn
+        const clickedTower = towers.find(t => Math.hypot(t.x - x, t.y - y) < 20);
+        if (clickedTower) {
+            showUpgradeMenu(clickedTower);
+            return;
+        }
+
+        // Plasser nytt tårn
+        if (gameActive && selectedTowerType && money >= selectedTowerCost) {
             towers.push({
                 x, y,
-                ...towerStats[selectedTowerType],
-                timer: 0
+                ...JSON.parse(JSON.stringify(towerStats[selectedTowerType])),
+                level: 1,
+                timer: 0,
+                id: Date.now()
             });
             money -= selectedTowerCost;
             updateUI();
         }
     });
 
+    function showUpgradeMenu(tower) {
+        selectedPlacedTower = tower;
+        const menu = document.getElementById('upgrade-menu');
+        const btn = document.getElementById('upgrade-btn');
+        menu.style.display = 'block';
+        document.getElementById('upgrade-title').innerText = tower.name;
+        document.getElementById('upgrade-info').innerText = "Nivå: " + tower.level;
+        
+        if (tower.level >= 3) {
+            btn.innerText = "Maks Nivå";
+            btn.disabled = true;
+        } else {
+            const cost = tower.level * 250;
+            btn.innerText = `Oppgrader (${cost}g)`;
+            btn.disabled = false;
+            btn.onclick = () => upgradeTower(tower, cost);
+        }
+    }
+
+    function upgradeTower(tower, cost) {
+        if (money >= cost) {
+            money -= cost;
+            tower.level++;
+            if (tower.type === 'attack') {
+                tower.damage *= 1.8;
+                tower.range *= 1.2;
+            }
+            showUpgradeMenu(tower);
+            updateUI();
+        }
+    }
+
     function nextWave() {
         wave++;
+        // Mine bonus
+        towers.filter(t => t.type === 'money').forEach(mine => {
+            money += (50 * mine.level);
+        });
+        
         updateUI();
-        for (let i = 0; i < 5 + wave; i++) {
+        for (let i = 0; i < 8 + (wave * 2); i++) {
             setTimeout(() => {
                 enemies.push({
-                    x: waypoints[0].x,
-                    y: waypoints[0].y,
-                    health: 50 + (wave * 20),
-                    maxHealth: 50 + (wave * 20),
-                    speed: 1 + (Math.random() * 0.5),
+                    x: waypoints[0].x, y: waypoints[0].y,
+                    health: 60 + (wave * 40),
+                    maxHealth: 60 + (wave * 40),
+                    speed: 1.2 + (wave * 0.1),
                     targetIdx: 1
                 });
-            }, i * 600);
+            }, i * 500);
         }
     }
 
@@ -202,15 +281,17 @@
         if (!gameActive) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Tegn vei
-        ctx.strokeStyle = '#95a5a6';
-        ctx.lineWidth = 40;
+        // Tegn vei (Path)
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 45;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
         ctx.beginPath();
         ctx.moveTo(waypoints[0].x, waypoints[0].y);
         waypoints.forEach(p => ctx.lineTo(p.x, p.y));
         ctx.stroke();
 
-        // Oppdater fiender
+        // Fiender
         enemies.forEach((enemy, index) => {
             const target = waypoints[enemy.targetIdx];
             const dx = target.x - enemy.x;
@@ -230,68 +311,84 @@
             enemy.x += (dx / dist) * enemy.speed;
             enemy.y += (dy / dist) * enemy.speed;
 
-            // Tegn fiende
-            ctx.fillStyle = '#c0392b';
+            ctx.fillStyle = '#ff4757';
             ctx.beginPath();
-            ctx.arc(enemy.x, enemy.y, 10, 0, Math.PI * 2);
+            ctx.arc(enemy.x, enemy.y, 12, 0, Math.PI * 2);
             ctx.fill();
             
-            // HP bar
-            ctx.fillStyle = 'black';
-            ctx.fillRect(enemy.x - 10, enemy.y - 15, 20, 3);
-            ctx.fillStyle = 'red';
-            ctx.fillRect(enemy.x - 10, enemy.y - 15, (enemy.health / enemy.maxHealth) * 20, 3);
+            // HP Bar
+            ctx.fillStyle = '#000';
+            ctx.fillRect(enemy.x - 15, enemy.y - 20, 30, 4);
+            ctx.fillStyle = '#2ed573';
+            ctx.fillRect(enemy.x - 15, enemy.y - 20, (enemy.health / enemy.maxHealth) * 30, 4);
         });
 
-        // Oppdater tårn
+        // Tårn
         towers.forEach(tower => {
+            // Tegn rekkevidde hvis valgt
+            if (selectedPlacedTower === tower) {
+                ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+                ctx.beginPath();
+                ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Tegn selve tårnet
             ctx.fillStyle = tower.color;
             ctx.beginPath();
-            ctx.arc(tower.x, tower.y, 15, 0, Math.PI * 2);
+            ctx.arc(tower.x, tower.y, 18, 0, Math.PI * 2);
             ctx.fill();
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-            tower.timer++;
-            if (tower.timer >= tower.fireRate) {
-                // Finn nærmeste fiende
-                const target = enemies.find(e => Math.hypot(e.x - tower.x, e.y - tower.y) < tower.range);
-                if (target) {
-                    bullets.push({ x: tower.x, y: tower.y, target: target, damage: tower.damage });
-                    tower.timer = 0;
+            // Tegn nivå-stjerner
+            ctx.fillStyle = "white";
+            ctx.font = "12px Arial";
+            ctx.fillText("⭐".repeat(tower.level), tower.x - 10, tower.y + 5);
+
+            if (tower.type === 'attack') {
+                tower.timer++;
+                if (tower.timer >= tower.fireRate) {
+                    const target = enemies.find(e => Math.hypot(e.x - tower.x, e.y - tower.y) < tower.range);
+                    if (target) {
+                        bullets.push({ x: tower.x, y: tower.y, target: target, damage: tower.damage, color: tower.color });
+                        tower.timer = 0;
+                    }
                 }
             }
         });
 
-        // Oppdater kuler
+        // Kuler
         bullets.forEach((bullet, index) => {
             const dx = bullet.target.x - bullet.x;
             const dy = bullet.target.y - bullet.y;
             const dist = Math.hypot(dx, dy);
 
-            if (dist < 10) {
-                bullet.target.health -= bullet.damage;
-                bullets.splice(index, 1);
-                if (bullet.target.health <= 0) {
-                    const eIdx = enemies.indexOf(bullet.target);
-                    if (eIdx > -1) {
-                        enemies.splice(eIdx, 1);
-                        money += 20;
+            if (dist < 10 || !enemies.includes(bullet.target)) {
+                if (enemies.includes(bullet.target)) {
+                    bullet.target.health -= bullet.damage;
+                    if (bullet.target.health <= 0) {
+                        enemies.splice(enemies.indexOf(bullet.target), 1);
+                        money += 25;
                         updateUI();
                     }
                 }
+                bullets.splice(index, 1);
                 return;
             }
 
-            bullet.x += (dx / dist) * 7;
-            bullet.y += (dy / dist) * 7;
+            bullet.x += (dx / dist) * 10;
+            bullet.y += (dy / dist) * 10;
 
-            ctx.fillStyle = 'white';
+            ctx.fillStyle = bullet.color;
             ctx.beginPath();
-            ctx.arc(bullet.x, bullet.y, 3, 0, Math.PI * 2);
+            ctx.arc(bullet.x, bullet.y, 4, 0, Math.PI * 2);
             ctx.fill();
         });
 
         if (lives <= 0) {
-            alert("Game Over! Du kom til bølge " + wave);
+            alert("Game Over! Din base ble ødelagt.");
             location.reload();
         }
 
