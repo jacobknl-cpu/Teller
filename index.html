@@ -3,117 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tower Defense - AOE Towers</title>
+    <title>Tower Defense - Pro Edition</title>
     <style>
         :root {
-            --bg: #1a1a2e;
-            --panel: #16213e;
-            --text: #4cc9f0;
-            --accent: #4361ee;
-            --danger: #f72585;
-            --aoe-tower-color: #fca311; /* Ny farge for AOE */
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #38bdf8;
+            --accent: #3b82f6;
+            --danger: #ef4444;
+            --money: #fbbf24;
         }
         body {
-            margin: 0; background-color: var(--bg); color: #fff;
-            font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center;
+            margin: 0; background-color: var(--bg); color: #f8fafc;
+            font-family: 'Inter', 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center;
         }
         #ui-top {
-            padding: 15px; font-size: 22px; display: flex; gap: 30px;
-            background: var(--panel); width: 100%; justify-content: center; border-bottom: 3px solid var(--accent);
+            padding: 15px; font-size: 24px; display: flex; gap: 40px;
+            background: var(--panel); width: 100%; justify-content: center; border-bottom: 2px solid var(--accent);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         }
-        #game-area { position: relative; display: flex; padding: 20px; gap: 20px; }
-        canvas { background-color: #1b4332; border: 4px solid #2d6a4f; border-radius: 12px; }
+        #game-area { position: relative; display: flex; padding: 20px; gap: 25px; align-items: flex-start; }
+        
+        canvas { 
+            background-color: #064e3b; 
+            border: 4px solid #065f46; 
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+        }
         
         #side-panel {
-            width: 280px; background: var(--panel); padding: 20px; border-radius: 12px;
-            display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--accent);
+            width: 300px; background: var(--panel); padding: 20px; border-radius: 16px;
+            display: flex; flex-direction: column; gap: 12px; border: 1px solid #334155;
         }
+
         .tower-option {
-            background: var(--accent); padding: 10px; border-radius: 8px; cursor: pointer;
-            border: 2px solid transparent; transition: 0.2s; font-size: 0.9rem;
+            background: #334155; padding: 12px; border-radius: 10px; cursor: pointer;
+            border: 2px solid transparent; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .tower-option:hover { border-color: #fff; }
-        .tower-option.selected { background: var(--text); color: #000; }
+        .tower-option:hover { background: #475569; transform: translateY(-2px); }
+        .tower-option.selected { border-color: var(--text); background: #0f172a; }
+
+        .price-tag { color: var(--money); font-weight: bold; float: right; }
 
         #upgrade-menu {
-            margin-top: 10px; padding: 15px; background: rgba(255,255,255,0.05);
-            border-radius: 8px; display: none; border-left: 4px solid var(--text);
+            margin-top: 10px; padding: 15px; background: #0f172a;
+            border-radius: 12px; display: none; border: 1px solid var(--accent);
         }
-        .upgrade-path {
-            display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;
-        }
+        .upgrade-path { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        
         .up-btn {
-            padding: 8px; cursor: pointer; border: none; border-radius: 4px;
-            font-weight: bold; font-size: 0.8rem; background: #3a0ca3; color: white;
+            padding: 10px; cursor: pointer; border: none; border-radius: 6px;
+            font-weight: 700; background: var(--accent); color: white; transition: 0.2s;
         }
-        .up-btn:disabled { background: #444; cursor: not-allowed; }
+        .up-btn:hover:not(:disabled) { filter: brightness(1.2); }
+        .up-btn:disabled { background: #475569; opacity: 0.5; cursor: not-allowed; }
         
         .btn-start {
-            width: 100%; padding: 15px; margin-top: auto; cursor: pointer;
-            background: var(--danger); border: none; color: white; font-weight: bold; border-radius: 5px;
+            width: 100%; padding: 18px; margin-top: 10px; cursor: pointer;
+            background: #10b981; border: none; color: white; font-weight: 800; 
+            border-radius: 10px; font-size: 16px; text-transform: uppercase;
         }
         #map-selector {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(26, 26, 46, 0.98); display: flex; flex-direction: column;
+            background: rgba(15, 23, 42, 0.95); display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 100;
         }
         .map-btn {
-            padding: 20px 40px; margin: 10px; font-size: 18px; cursor: pointer;
-            background: var(--accent); border: none; color: white; border-radius: 8px;
+            padding: 20px 50px; margin: 15px; font-size: 22px; cursor: pointer;
+            background: var(--accent); border: none; color: white; border-radius: 12px;
         }
     </style>
 </head>
 <body>
 
 <div id="ui-top">
-    <span>💰 <b id="money-display">700</b></span>
-    <span>❤️ <b id="lives-display">20</b></span>
+    <span>💰 <b id="money-display" style="color:var(--money)">800</b></span>
+    <span>❤️ <b id="lives-display" style="color:var(--danger)">20</b></span>
     <span>👾 Bølge: <b id="wave-display">0</b></span>
 </div>
 
 <div id="game-area">
     <div id="map-selector">
-        <h1>Velg Strategisk Bane</h1>
-        <button class="map-btn" onclick="startGame('extreme')">Den Store Labyrinten</button>
+        <h1 style="font-size: 40px; color: var(--text)">Strategisk Forsvar</h1>
+        <button class="map-btn" onclick="startGame('giant')">Start Operasjon (Stor Bane)</button>
     </div>
 
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
+    <canvas id="gameCanvas" width="1000" height="600"></canvas>
 
     <div id="side-panel">
-        <h3 style="margin-top:0">Butikk</h3>
+        <h3 style="margin: 0 0 10px 0; border-bottom: 1px solid #334155; padding-bottom: 5px;">Arsenal</h3>
         <div class="tower-option" onclick="selectTower('basic', 150)" id="tower-basic">
-            <b>Standard Skyter</b> (150g)
+            <b>Standard</b> <span class="price-tag">150g</span><br><small>Rask og pålitelig</small>
         </div>
-        <div class="tower-option" onclick="selectTower('sniper', 400)" id="tower-sniper">
-            <b>Snikskytter</b> (400g)
+        <div class="tower-option" onclick="selectTower('sniper', 450)" id="tower-sniper">
+            <b>Sniper</b> <span class="price-tag">450g</span><br><small>Enorm skade, treg</small>
         </div>
-        <div class="tower-option" onclick="selectTower('bomb', 300)" id="tower-bomb">
-            <b>Bombe Tårn</b> (300g) <br><small>AOE skade</small>
+        <div class="tower-option" onclick="selectTower('bomb', 350)" id="tower-bomb">
+            <b>Artilleri</b> <span class="price-tag">350g</span><br><small>Eksplosiv AOE</small>
         </div>
-        <div class="tower-option" onclick="selectTower('mine', 500)" id="tower-mine">
-            <b>Gullgruve</b> (500g)
+        <div class="tower-option" onclick="selectTower('mine', 600)" id="tower-mine">
+            <b>Gullgruve</b> <span class="price-tag">600g</span><br><small>Genererer formue</small>
         </div>
 
         <div id="upgrade-menu">
-            <h3 id="up-title" style="margin:0 0 10px 0; color:var(--text)">Tårn</h3>
-            
+            <h3 id="up-title" style="margin:0 0 15px 0; color:var(--text); text-align: center;">Tårn Info</h3>
             <div class="upgrade-path">
-                <span>🔥 Styrke (Lvl <span id="lvl-dmg">0</span>)</span>
-                <button id="btn-dmg" class="up-btn" onclick="applyUpgrade('damage')">Oppgrader (100g)</button>
+                <span>🔥 Skade (Lvl <span id="lvl-dmg">0</span>)</span>
+                <button id="btn-dmg" class="up-btn" onclick="applyUpgrade('damage')">Oppgrader</button>
             </div>
-            
             <div class="upgrade-path">
-                <span>⚡ Fart (Lvl <span id="lvl-spd">0</span>)</span>
-                <button id="btn-spd" class="up-btn" onclick="applyUpgrade('speed')">Oppgrader (100g)</button>
+                <span>⚡ Frekvens (Lvl <span id="lvl-spd">0</span>)</span>
+                <button id="btn-spd" class="up-btn" onclick="applyUpgrade('speed')">Oppgrader</button>
             </div>
-            
             <div class="upgrade-path">
                 <span>🎯 Rekkevidde (Lvl <span id="lvl-rng">0</span>)</span>
-                <button id="btn-rng" class="up-btn" onclick="applyUpgrade('range')">Oppgrader (100g)</button>
+                <button id="btn-rng" class="up-btn" onclick="applyUpgrade('range')">Oppgrader</button>
             </div>
         </div>
 
-        <button onclick="nextWave()" class="btn-start">NESTE BØLGE</button>
+        <button onclick="nextWave()" class="btn-start">Send Bølge</button>
     </div>
 </div>
 
@@ -121,32 +129,34 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    let money = 700;
+    let money = 800;
     let lives = 20;
     let wave = 0;
     let selectedTowerType = null;
     let selectedTowerCost = 0;
-    let activeTower = null; // Tårnet som er valgt for oppgradering
+    let activeTower = null;
     
     let towers = [];
     let enemies = [];
-    let bullets = []; // Nå også for bomber
-    let explosions = []; // Nye effekter
+    let bullets = [];
+    let explosions = [];
     let waypoints = [];
     let gameActive = false;
 
+    // Definerer en mye lengre og større bane
     const maps = {
-        'extreme': [
-            {x:0,y:50}, {x:750,y:50}, {x:750,y:200}, {x:50,y:200}, 
-            {x:50,y:350}, {x:750,y:350}, {x:750,y:450}, {x:0,y:450}
+        'giant': [
+            {x:0,y:100}, {x:400,y:100}, {x:400,y:300}, {x:150,y:300}, 
+            {x:150,y:500}, {x:600,y:500}, {x:600,y:100}, {x:850,y:100},
+            {x:850,y:500}, {x:1000,y:500}
         ]
     };
 
     const baseStats = {
-        'basic': { name: "Skytter", range: 120, fireRate: 35, color: '#4cc9f0', damage: 20, type: 'attack' },
-        'sniper': { name: "Snikskytter", range: 250, fireRate: 100, color: '#f1c40f', damage: 100, type: 'attack' },
-        'bomb': { name: "Bombe Tårn", range: 100, fireRate: 60, color: '#fca311', damage: 30, type: 'aoe', aoeRadius: 50 }, // Nytt tårn
-        'mine': { name: "Gullgruve", range: 0, fireRate: 0, color: '#4ade80', damage: 0, type: 'money' }
+        'basic': { name: "Standard", range: 150, fireRate: 30, color: '#38bdf8', damage: 25, type: 'attack' },
+        'sniper': { name: "Sniper", range: 350, fireRate: 120, color: '#facc15', damage: 150, type: 'attack' },
+        'bomb': { name: "Artilleri", range: 130, fireRate: 70, color: '#f87171', damage: 45, type: 'aoe', aoeRadius: 65 },
+        'mine': { name: "Gullgruve", range: 0, fireRate: 0, color: '#10b981', damage: 0, type: 'money' }
     };
 
     function startGame(mapType) {
@@ -171,19 +181,23 @@
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
 
-        const clickedTower = towers.find(t => Math.hypot(t.x - x, t.y - y) < 20);
+        const clickedTower = towers.find(t => Math.hypot(t.x - x, t.y - y) < 25);
         
         if (clickedTower) {
             activeTower = clickedTower;
             showUpgradeMenu();
         } else if (selectedTowerType && money >= selectedTowerCost) {
-            towers.push({
-                x, y, ...JSON.parse(JSON.stringify(baseStats[selectedTowerType])),
-                upgrades: { damage: 0, speed: 0, range: 0 },
-                timer: 0
-            });
-            money -= selectedTowerCost;
-            updateUI();
+            // Sjekk avstand til andre tårn
+            const tooClose = towers.some(t => Math.hypot(t.x - x, t.y - y) < 40);
+            if (!tooClose) {
+                towers.push({
+                    x, y, ...JSON.parse(JSON.stringify(baseStats[selectedTowerType])),
+                    upgrades: { damage: 0, speed: 0, range: 0 },
+                    timer: 0
+                });
+                money -= selectedTowerCost;
+                updateUI();
+            }
         }
     });
 
@@ -192,7 +206,6 @@
         menu.style.display = 'block';
         document.getElementById('up-title').innerText = activeTower.name;
         
-        // Oppdater tekst og knapper for de 3 veiene
         updatePath('damage', 'lvl-dmg', 'btn-dmg');
         updatePath('speed', 'lvl-spd', 'btn-spd');
         updatePath('range', 'lvl-rng', 'btn-rng');
@@ -203,67 +216,57 @@
         document.getElementById(lvlId).innerText = lvl;
         const btn = document.getElementById(btnId);
         
-        // Gullgruven kan kun oppgradere 'damage' (som er gullproduksjon)
         if (activeTower.type === 'money' && path !== 'damage') {
-            btn.innerText = "Ikke Relevant";
-            btn.disabled = true;
-            return;
+            btn.innerText = "N/A"; btn.disabled = true; return;
         }
 
         if (lvl >= 5) {
-            btn.innerText = "MAX";
-            btn.disabled = true;
+            btn.innerText = "MAX"; btn.disabled = true;
         } else {
-            const cost = (lvl + 1) * 150;
-            btn.innerText = `Oppgrader (${cost}g)`;
+            const cost = (lvl + 1) * 200; // Balansert oppgraderingskostnad
+            btn.innerText = `${cost}g`;
             btn.disabled = money < cost;
         }
     }
 
     function applyUpgrade(path) {
-        // Hvis det er en gullgruve og feil path, returner
-        if (activeTower.type === 'money' && path !== 'damage') return;
-
-        const cost = (activeTower.upgrades[path] + 1) * 150;
+        const cost = (activeTower.upgrades[path] + 1) * 200;
         if (money >= cost) {
             money -= cost;
             activeTower.upgrades[path]++;
             
-            // Logikk for de forskjellige veiene
             if (path === 'damage') {
-                if (activeTower.type === 'money') { // Mine-spesifikk damage (inntekt)
-                    activeTower.damage += 25; 
-                } else { // Attack towers
-                    activeTower.damage *= 1.5;
-                }
+                if (activeTower.type === 'money') activeTower.damage += 35; 
+                else activeTower.damage *= 1.4;
             }
-            if (path === 'speed') activeTower.fireRate = Math.max(5, activeTower.fireRate * 0.7);
+            if (path === 'speed') activeTower.fireRate *= 0.8;
             if (path === 'range') {
-                activeTower.range += 30;
-                if (activeTower.type === 'aoe') activeTower.aoeRadius += 10; // AOE tårnets radius øker også
+                activeTower.range += 40;
+                if (activeTower.type === 'aoe') activeTower.aoeRadius += 15;
             }
-            
             showUpgradeMenu();
             updateUI();
         }
     }
 
     function nextWave() {
+        if (enemies.length > 0) return; // Må tømme bølge før neste
         wave++;
-        // Gullgruver gir penger
         towers.filter(t => t.type === 'money').forEach(t => {
-            money += 50 + (t.upgrades.damage * 30); // damage-path øker gull her
+            money += 60 + (t.upgrades.damage * 40);
         });
         
         updateUI();
-        for (let i = 0; i < 10 + (wave * 2); i++) {
+        // Eksponentiell vanskelighetsgrad
+        const count = 10 + Math.floor(wave * 2.5);
+        for (let i = 0; i < count; i++) {
             setTimeout(() => {
                 enemies.push({
                     x: waypoints[0].x, y: waypoints[0].y,
-                    health: 50 + (wave * 45), maxHealth: 50 + (wave * 45),
-                    speed: 1.3 + (wave * 0.1), targetIdx: 1
+                    health: 60 + (wave * 55), maxHealth: 60 + (wave * 55),
+                    speed: 1.5 + (wave * 0.08), targetIdx: 1
                 });
-            }, i * 400);
+            }, i * 450);
         }
     }
 
@@ -271,23 +274,23 @@
         document.getElementById('money-display').innerText = money;
         document.getElementById('lives-display').innerText = lives;
         document.getElementById('wave-display').innerText = wave;
-        if (activeTower) showUpgradeMenu(); // Refresh priser
     }
 
     function gameLoop() {
-        if (!gameActive) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Bane
-        ctx.strokeStyle = '#2d6a4f'; ctx.lineWidth = 40; ctx.lineJoin = "round";
+        // Tegn Bane
+        ctx.strokeStyle = '#065f46'; ctx.lineWidth = 55; ctx.lineJoin = "round";
         ctx.beginPath(); ctx.moveTo(waypoints[0].x, waypoints[0].y);
         waypoints.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+        
+        // Senter-linje i banen
+        ctx.strokeStyle = '#064e3b'; ctx.lineWidth = 2;
+        ctx.setLineDash([10, 10]); ctx.stroke(); ctx.setLineDash([]);
 
         // Fiender
         enemies.forEach((enemy, index) => {
             const target = waypoints[enemy.targetIdx];
-            if (!target) return; // Forhindre feil hvis fiende er ved slutten
-
             const dist = Math.hypot(target.x - enemy.x, target.y - enemy.y);
             if (dist < 5) {
                 enemy.targetIdx++;
@@ -298,80 +301,67 @@
             enemy.x += ((target.x - enemy.x) / dist) * enemy.speed;
             enemy.y += ((target.y - enemy.y) / dist) * enemy.speed;
             
-            ctx.fillStyle = '#f72585'; ctx.beginPath();
-            ctx.arc(enemy.x, enemy.y, 12, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#000'; ctx.fillRect(enemy.x-15, enemy.y-20, 30, 4);
-            ctx.fillStyle = '#4ade80'; ctx.fillRect(enemy.x-15, enemy.y-20, (enemy.health/enemy.maxHealth)*30, 4);
+            ctx.fillStyle = '#f43f5e'; ctx.beginPath();
+            ctx.arc(enemy.x, enemy.y, 14, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#000'; ctx.fillRect(enemy.x-15, enemy.y-22, 30, 5);
+            ctx.fillStyle = '#10b981'; ctx.fillRect(enemy.x-15, enemy.y-22, (enemy.health/enemy.maxHealth)*30, 5);
         });
 
         // Tårn
         towers.forEach(tower => {
             if (activeTower === tower) {
-                ctx.fillStyle = "rgba(76, 201, 240, 0.15)";
-                ctx.beginPath(); ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+                ctx.beginPath(); ctx.arc(tower.x, tower.y, tower.range, 0, Math.PI*2); ctx.stroke();
             }
             ctx.fillStyle = tower.color; ctx.beginPath();
-            ctx.arc(tower.x, tower.y, 20, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
-            
-            // Nivåindikator
-            ctx.fillStyle = "white"; ctx.font = "bold 10px Arial";
-            ctx.fillText(`D${tower.upgrades.damage} S${tower.upgrades.speed} R${tower.upgrades.range}`, tower.x-18, tower.y+5);
+            ctx.arc(tower.x, tower.y, 22, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.stroke();
 
-            if (tower.type === 'attack' || tower.type === 'aoe') { // Skytesystem for begge
+            if (tower.type !== 'money') {
                 tower.timer++;
                 if (tower.timer >= tower.fireRate) {
                     const target = enemies.find(e => Math.hypot(e.x - tower.x, e.y - tower.y) < tower.range);
                     if (target) {
-                        bullets.push({x: tower.x, y: tower.y, target, damage: tower.damage, color: tower.color, type: tower.type, aoeRadius: tower.aoeRadius || 0});
+                        bullets.push({x: tower.x, y: tower.y, target, damage: tower.damage, color: tower.color, type: tower.type, aoeRadius: tower.aoeRadius});
                         tower.timer = 0;
                     }
                 }
             }
         });
 
-        // Kuler (nå også bomber)
+        // Prosjektiler
         bullets.forEach((b, i) => {
             const dist = Math.hypot(b.target.x - b.x, b.target.y - b.y);
-            if (dist < 10 || !enemies.includes(b.target)) {
+            if (dist < 12 || !enemies.includes(b.target)) {
                 if (enemies.includes(b.target)) {
-                    if (b.type === 'aoe') { // AOE skade
+                    if (b.type === 'aoe') {
                         explosions.push({x: b.target.x, y: b.target.y, radius: b.aoeRadius, timer: 0});
                         enemies.forEach(e => {
-                            if (Math.hypot(e.x - b.target.x, e.y - b.target.y) < b.aoeRadius) {
-                                e.health -= b.damage;
-                            }
+                            if (Math.hypot(e.x - b.target.x, e.y - b.target.y) < b.aoeRadius) e.health -= b.damage;
                         });
-                    } else { // Standard skade
-                        b.target.health -= b.damage;
-                    }
-
-                    // Sjekk for døde fiender etter skade
-                    enemies.filter(e => e.health <= 0).forEach(e => {
-                        enemies.splice(enemies.indexOf(e), 1); money += 20;
+                    } else b.target.health -= b.damage;
+                    
+                    enemies = enemies.filter(e => {
+                        if (e.health <= 0) { money += 15; return false; }
+                        return true;
                     });
                     updateUI();
                 }
                 bullets.splice(i, 1); return;
             }
-            b.x += ((b.target.x - b.x) / dist) * 12;
-            b.y += ((b.target.y - b.y) / dist) * 12;
-            ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI*2); ctx.fill();
+            b.x += ((b.target.x - b.x) / dist) * 15;
+            b.y += ((b.target.y - b.y) / dist) * 15;
+            ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, Math.PI*2); ctx.fill();
         });
 
-        // Eksplosjoner
+        // Eksplosjonseffekter
         explosions.forEach((exp, i) => {
-            ctx.fillStyle = `rgba(252, 163, 17, ${1 - (exp.timer / 15)})`; // Fader ut
-            ctx.beginPath();
-            ctx.arc(exp.x, exp.y, exp.radius * (exp.timer / 15), 0, Math.PI * 2); // Vokser
-            ctx.fill();
-            exp.timer++;
-            if (exp.timer >= 15) {
-                explosions.splice(i, 1);
-            }
+            ctx.fillStyle = `rgba(248, 113, 113, ${1 - exp.timer/20})`;
+            ctx.beginPath(); ctx.arc(exp.x, exp.y, exp.radius * (exp.timer/20), 0, Math.PI*2); ctx.fill();
+            exp.timer++; if (exp.timer >= 20) explosions.splice(i, 1);
         });
 
-        if (lives <= 0) { alert("Base ødelagt! Du nådde bølge " + wave); location.reload(); }
+        if (lives <= 0) { alert("Base falt! Bølge overlevd: " + wave); location.reload(); }
         requestAnimationFrame(gameLoop);
     }
 </script>
