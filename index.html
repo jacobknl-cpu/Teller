@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <title>TD: Professional Tactics</title>
+    <title>TD Evolution: Master Edition</title>
     <style>
         :root {
             --bg: #020617; --panel: #0f172a; --text: #38bdf8;
@@ -11,65 +11,89 @@
         }
         body { margin: 0; background: var(--bg); color: #f8fafc; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
+        /* Menyer */
         .overlay { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-        .menu-card { background: var(--panel); padding: 40px; border-radius: 20px; border: 2px solid var(--accent); text-align: center; }
+        .menu-card { background: var(--panel); padding: 30px; border-radius: 20px; border: 2px solid var(--accent); text-align: center; width: 400px; }
         
-        #ui-top { padding: 15px; font-size: 18px; display: flex; gap: 30px; background: var(--panel); width: 100%; justify-content: center; border-bottom: 2px solid #1e293b; }
+        /* Grensesnitt */
+        #ui-top { padding: 10px; font-size: 16px; display: flex; gap: 20px; background: var(--panel); width: 100%; justify-content: center; border-bottom: 2px solid #1e293b; }
         #game-area { display: none; padding: 20px; gap: 20px; justify-content: center; }
         canvas { background: #064e3b; border: 2px solid #334155; border-radius: 8px; cursor: crosshair; }
         
-        #side-panel { width: 350px; background: var(--panel); padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px; height: 85vh; overflow-y: auto; }
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .tower-option { background: #1e293b; padding: 10px; border-radius: 8px; cursor: pointer; border: 1px solid #334155; text-align: center; font-size: 0.9rem; }
+        #side-panel { width: 350px; background: var(--panel); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; height: 90vh; overflow-y: auto; }
+        
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .tower-option { background: #1e293b; padding: 8px; border-radius: 6px; cursor: pointer; border: 1px solid #334155; text-align: center; font-size: 0.85rem; }
         .tower-option:hover { border-color: var(--text); }
-        .tower-option.selected { border-color: var(--text); background: #020617; box-shadow: 0 0 10px var(--accent); }
+
+        .btn-main { padding: 12px; background: var(--success); border: none; color: white; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; }
+        .btn-ctrl { padding: 8px; background: #1e293b; border: 1px solid #475569; color: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; flex: 1; }
+        .btn-ctrl.active { background: var(--accent); border-color: white; }
+
+        #stats-panel, #upgrade-menu { background: #020617; padding: 12px; border-radius: 8px; border: 1px solid var(--accent); display: none; }
+        .up-btn { width: 100%; padding: 6px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; background: var(--success); margin-top: 4px; font-size: 0.8rem; }
         
-        #stats-panel, #upgrade-menu { background: #020617; padding: 15px; border-radius: 8px; border: 1px solid var(--accent); display: none; }
-        .up-btn { width: 100%; padding: 8px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; color: white; background: var(--success); margin-top: 5px; }
-        .sell-btn { width: 100%; margin-top: 10px; background: var(--danger); color: white; border: none; border-radius: 4px; padding: 8px; cursor: pointer; }
-        
-        .btn-start { padding: 15px 40px; background: var(--success); border: none; color: white; font-size: 1.2rem; font-weight: bold; border-radius: 10px; cursor: pointer; }
-        .confirm-ui { position: absolute; display: none; gap: 10px; z-index: 50; }
-        .confirm-btn { padding: 8px 15px; border-radius: 5px; border: none; color: white; font-weight: bold; cursor: pointer; }
+        .confirm-ui { position: absolute; display: none; gap: 5px; z-index: 50; }
+        .confirm-btn { padding: 6px 10px; border-radius: 4px; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 0.75rem; }
     </style>
 </head>
 <body>
 
 <div id="main-menu" class="overlay">
     <div class="menu-card">
-        <h1 style="color:var(--text)">TD EVOLUTION</h1>
-        <button class="btn-start" onclick="startGame()">START SPILL</button>
+        <h1>TD EVOLUTION</h1>
+        <p>Velg Vanskelighetsgrad:</p>
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <button class="btn-ctrl" onclick="difficulty='easy'">Lett</button>
+            <button class="btn-ctrl active" onclick="difficulty='normal'">Normal</button>
+            <button class="btn-ctrl" onclick="difficulty='hard'">Hard</button>
+        </div>
+        <button class="btn-main" onclick="startGame()">START SPILL</button>
     </div>
 </div>
 
 <div id="confirm-box" class="confirm-ui">
-    <button class="confirm-btn" style="background:var(--success)" onclick="confirmPlacement()">BYGG (V)</button>
-    <button class="confirm-btn" style="background:var(--danger)" onclick="cancelPlacement()">AVBRYT (X)</button>
+    <button class="confirm-btn" style="background:var(--success)" onclick="confirmPlacement()">BYGG</button>
+    <button class="confirm-btn" style="background:var(--danger)" onclick="cancelPlacement()">X</button>
 </div>
 
 <div id="ui-top">
     <span>💰 <b id="money-display">0</b></span>
     <span>👾 Bølge: <b id="wave-display">0</b></span>
     <span>❤️ Liv: <b id="lives-display">0</b></span>
+    <span>📈 Rente: <b id="interest-display">0</b></span>
 </div>
 
 <div id="game-area">
     <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
     <div id="side-panel">
+        <div style="display:flex; gap:5px;">
+            <button id="speed-btn" onclick="toggleSpeed()" class="btn-ctrl">2x FART</button>
+            <button id="auto-btn" onclick="toggleAuto()" class="btn-ctrl">AUTO</button>
+        </div>
+        
+        <button onclick="nextWave()" class="btn-main">NESTE BØLGE</button>
+
         <div class="shop-grid">
             <div class="tower-option" onclick="selectTower('basic', 250)">Standard (250g)</div>
             <div class="tower-option" onclick="selectTower('sniper', 600)">Sniper (600g)</div>
             <div class="tower-option" onclick="selectTower('artillery', 850)">Artilleri (850g)</div>
             <div class="tower-option" onclick="selectTower('tesla', 1100)">Tesla (1100g)</div>
-            <div class="tower-option" onclick="selectTower('frost', 750)" style="color:#60a5fa">Frost-Mage (750g)</div>
-            <div class="tower-option" onclick="selectTower('poison', 900)" style="color:#4ade80">Alchemist (900g)</div>
+            <div class="tower-option" onclick="selectTower('frost', 750)">Frost (750g)</div>
+            <div class="tower-option" onclick="selectTower('poison', 900)">Gift (900g)</div>
+            <div class="tower-option" onclick="selectTower('farm', 1000)" style="color:var(--money)">Gullgruve (1000g)</div>
         </div>
+
         <div id="stats-panel">
             <div id="stats-content"></div>
-            <button class="sell-btn" onclick="sellActiveTower()">Selg Tårn</button>
+            <button class="btn-main" style="background:var(--danger); margin-top:10px;" onclick="sellActiveTower()">Selg (75%)</button>
         </div>
-        <div id="upgrade-menu"><div id="paths-list"></div></div>
-        <button onclick="nextWave()" class="btn-start" style="width:100%">NESTE BØLGE</button>
+
+        <div id="upgrade-menu">
+            <h4 style="margin:0 0 5px 0">Oppgraderinger</h4>
+            <div id="paths-list"></div>
+        </div>
     </div>
 </div>
 
@@ -78,25 +102,40 @@
     const ctx = canvas.getContext('2d');
     const gridSize = 40;
 
-    let money = 1500, lives = 100, wave = 0, isGameOver = false;
+    let money, lives, wave, gameSpeed = 1, autoStart = false, difficulty = 'normal';
     let towers = [], enemies = [], projectiles = [], fx = [], activeTower = null;
     let ghostTower = null, selectedTowerType = null, selectedTowerCost = 0;
     
     const waypoints = [{x:0,y:100}, {x:520,y:100}, {x:520,y:300}, {x:120,y:300}, {x:120,y:500}, {x:800,y:500}];
 
     const towerData = {
-        'basic': { base: {range:160,fireRate:30,damage:40,color:'#38bdf8'}, paths: [{n:"Speed",t:"fireRate",m:0.7},{n:"Power",t:"damage",m:1.4},{n:"Focus",t:"range",m:1.3}]},
-        'sniper': { base: {range:400,fireRate:100,damage:280,color:'#facc15'}, paths: [{n:"Eagle",t:"range",m:1.8},{n:"Heavy",t:"damage",m:1.6},{n:"Rapid",t:"fireRate",m:0.8}]},
-        'artillery': { base: {range:240,fireRate:150,damage:400,color:'#f87171',aoe:70}, paths: [{n:"Cluster",t:"aoe",m:1.5},{n:"Burn",t:"damage",m:1.5},{n:"Reload",t:"fireRate",m:0.8}]},
-        'tesla': { base: {range:160,fireRate:50,damage:100,color:'#c084fc',chain:1,slow:0}, paths: [{n:"Super-Chain",t:"chain",m:2},{n:"High-Volt",t:"damage",m:1.4},{n:"Stat-Field",t:"slow",m:1}]},
-        'frost': { base: {range:180,fireRate:60,damage:20,color:'#60a5fa',freeze:40}, paths: [{n:"Deep-Freeze",t:"freeze",m:2},{n:"Chill",t:"range",m:1.4},{n:"Fast-Cast",t:"fireRate",m:0.7}]},
-        'poison': { base: {range:150,fireRate:80,damage:10,color:'#4ade80',dot:5}, paths: [{n:"Toxic",t:"dot",m:3},{n:"Flasks",t:"range",m:1.5},{n:"Quick",t:"fireRate",m:0.8}]}
+        'basic': { base: {range:160,fireRate:30,damage:40,color:'#38bdf8'}, paths: [{n:"Fart",t:"fireRate",m:0.7},{n:"Skade",t:"damage",m:1.4},{n:"Rekkevidde",t:"range",m:1.3}]},
+        'sniper': { base: {range:450,fireRate:100,damage:300,color:'#facc15'}, paths: [{n:"Rekkevidde",t:"range",m:1.8},{n:"Sniper-Skade",t:"damage",m:1.6},{n:"Reload",t:"fireRate",m:0.8}]},
+        'artillery': { base: {range:240,fireRate:150,damage:450,color:'#f87171',aoe:70}, paths: [{n:"Splash",t:"aoe",m:1.5},{n:"Napalm",t:"damage",m:1.5},{n:"Fart",t:"fireRate",m:0.8}]},
+        'tesla': { base: {range:160,fireRate:50,damage:120,color:'#c084fc',chain:1,slow:0}, paths: [{n:"Chain+",t:"chain",m:2},{n:"Volt+",t:"damage",m:1.4},{n:"Felt",t:"slow",m:1}]},
+        'frost': { base: {range:180,fireRate:60,damage:20,color:'#60a5fa',freeze:40}, paths: [{n:"Frys",t:"freeze",m:2},{n:"Rekke",t:"range",m:1.4},{n:"Fart",t:"fireRate",m:0.7}]},
+        'poison': { base: {range:150,fireRate:80,damage:15,color:'#4ade80',dot:5}, paths: [{n:"Toksin",t:"dot",m:3},{n:"Kast",t:"range",m:1.5},{n:"Fart",t:"fireRate",m:0.8}]},
+        'farm': { base: {range:0,fireRate:200,income:150,color:'#fbbf24'}, paths: [{n:"Effektivitet",t:"income",m:1.5},{n:"Bonus",t:"income",m:1.5},{n:"Støtte",t:"income",m:1.5}]}
     };
 
     function startGame() {
+        if(difficulty === 'easy') { money = 2000; lives = 150; }
+        else if(difficulty === 'hard') { money = 800; lives = 20; }
+        else { money = 1500; lives = 100; }
+        
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('game-area').style.display = 'flex';
         updateUI(); gameLoop();
+    }
+
+    function toggleSpeed() {
+        gameSpeed = gameSpeed === 1 ? 2 : 1;
+        document.getElementById('speed-btn').classList.toggle('active', gameSpeed === 2);
+    }
+
+    function toggleAuto() {
+        autoStart = !autoStart;
+        document.getElementById('auto-btn').classList.toggle('active', autoStart);
     }
 
     function selectTower(type, cost) {
@@ -149,31 +188,29 @@
             money -= cost; activeTower.totalSpent += cost; activeTower.levels[idx]++;
             const trait = towerData[activeTower.type].paths[idx].t;
             if(trait === "fireRate") activeTower[trait] *= towerData[activeTower.type].paths[idx].m;
-            else activeTower[trait] += (activeTower[trait] * 0.4) || 1;
+            else if (activeTower[trait]) activeTower[trait] *= towerData[activeTower.type].paths[idx].m;
+            if(activeTower.damage) activeTower.damage *= 1.2;
             updateUI(); updateUpgradeMenu(); updateStatsPanel();
         }
     }
 
     function drawTeslaBolt(t, target) {
-        let color = "#fff"; // Standard
+        let color = "#c084fc"; // Standard
         if (t.levels[0] > 0) color = "#fbbf24"; // Gult (Chain)
         if (t.levels[1] > 0) color = "#f87171"; // Rødt (Damage)
         if (t.levels[2] > 0) color = "#38bdf8"; // Blått (Slow)
         
-        ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(t.x, t.y);
-        ctx.lineTo(target.x + (Math.random()-0.5)*20, target.y + (Math.random()-0.5)*20);
-        ctx.stroke();
+        ctx.strokeStyle = color; ctx.lineWidth = 2 * gameSpeed; ctx.beginPath(); ctx.moveTo(t.x, t.y);
+        ctx.lineTo(target.x, target.y); ctx.stroke();
     }
 
     function gameLoop() {
-        if (isGameOver) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Bane
         ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 35; ctx.beginPath();
         ctx.moveTo(waypoints[0].x, waypoints[0].y); waypoints.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
 
-        // Ghost Tower (Placement guide)
         if (ghostTower) {
             ctx.fillStyle = "rgba(56, 189, 248, 0.3)"; ctx.fillRect(ghostTower.x-15, ghostTower.y-15, 30, 30);
             ctx.strokeStyle = "white"; ctx.beginPath(); ctx.arc(ghostTower.x, ghostTower.y, towerData[selectedTowerType].base.range, 0, Math.PI*2); ctx.stroke();
@@ -181,24 +218,26 @@
 
         // Fiender
         enemies.forEach((e, i) => {
-            if (e.stunTimer > 0) e.stunTimer--;
+            if (e.stunTimer > 0) e.stunTimer -= gameSpeed;
             else {
                 const target = waypoints[e.targetIdx];
                 const dist = Math.hypot(target.x-e.x, target.y-e.y);
                 if (dist < 5) { e.targetIdx++; if (e.targetIdx >= waypoints.length) { lives--; enemies.splice(i, 1); updateUI(); return; } }
                 let s = e.slowTimer > 0 ? e.speed * 0.4 : e.speed;
-                if(e.slowTimer > 0) e.slowTimer--;
-                if(e.poisonTimer > 0) { e.health -= e.poisonDmg; e.poisonTimer--; }
-                e.x += ((target.x-e.x)/dist)*s; e.y += ((target.y-e.y)/dist)*s;
+                if(e.slowTimer > 0) e.slowTimer -= gameSpeed;
+                if(e.poisonTimer > 0) { e.health -= e.poisonDmg * gameSpeed; e.poisonTimer -= gameSpeed; }
+                e.x += ((target.x-e.x)/dist)*s*gameSpeed; e.y += ((target.y-e.y)/dist)*s*gameSpeed;
             }
-            ctx.fillStyle = e.color; ctx.beginPath(); ctx.arc(e.x, e.y, e.type==="boss"?20:10, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = e.color; ctx.beginPath(); ctx.arc(e.x, e.y, 10, 0, Math.PI*2); ctx.fill();
             ctx.fillStyle = '#10b981'; ctx.fillRect(e.x-10, e.y-15, (e.health/e.maxH)*20, 3);
         });
 
         // Tårn
         towers.forEach(t => {
-            t.timer++;
-            if (t.timer >= t.fireRate) {
+            t.timer += gameSpeed;
+            if (t.type === 'farm') {
+                if (t.timer >= t.fireRate) { money += t.income; t.timer = 0; updateUI(); }
+            } else if (t.timer >= t.fireRate) {
                 const target = enemies.find(e => Math.hypot(e.x-t.x, e.y-t.y) < t.range);
                 if (target) {
                     if (t.type === 'tesla') {
@@ -208,9 +247,9 @@
                     } else if (t.type === 'frost') {
                         target.health -= t.damage; target.stunTimer = t.freeze;
                     } else if (t.type === 'poison') {
-                        target.poisonTimer = 100; target.poisonDmg = t.dot/10;
+                        target.poisonTimer = 100; target.poisonDmg = t.dot/5;
                     } else {
-                        projectiles.push({x:t.x,y:t.y,target,speed:12,damage:t.damage,type:t.type,aoe:t.aoe});
+                        projectiles.push({x:t.x,y:t.y,target,speed:12*gameSpeed,damage:t.damage,type:t.type,aoe:t.aoe});
                     }
                     t.timer = 0;
                 }
@@ -232,19 +271,23 @@
             }
         });
 
-        enemies = enemies.filter(e => { if(e.health <= 0) money += 45; return e.health > 0; });
-        if (lives <= 0) { alert("Game Over!"); location.reload(); }
+        enemies = enemies.filter(e => { if(e.health <= 0) money += 35; return e.health > 0; });
+        if (autoStart && enemies.length === 0) nextWave();
+        if (lives <= 0) { alert("Game Over! Bølge " + wave); location.reload(); }
         requestAnimationFrame(gameLoop);
     }
 
     function nextWave() {
         if (enemies.length > 0) return;
+        let interest = Math.floor(money * 0.02);
+        money += interest;
+        document.getElementById('interest-display').innerText = interest + "g";
         wave++; updateUI();
         for (let i = 0; i < 10 + wave * 2; i++) {
             setTimeout(() => {
-                let h = 80 + wave * 70;
-                enemies.push({ x:0,y:100, health: h, maxH: h, speed: 1.4+(wave*0.02), targetIdx: 1, slowTimer:0, stunTimer:0, poisonTimer:0, color:"#f43f5e" });
-            }, i * 400);
+                let h = 100 + wave * 80;
+                enemies.push({ x:0,y:100, health: h, maxH: h, speed: 1.3+(wave*0.02), targetIdx: 1, slowTimer:0, stunTimer:0, poisonTimer:0, color:"#f43f5e" });
+            }, i * (400 / gameSpeed));
         }
     }
 
@@ -256,7 +299,7 @@
 
     function updateStatsPanel() {
         document.getElementById('stats-panel').style.display = 'block';
-        document.getElementById('stats-content').innerHTML = `<b>${activeTower.type.toUpperCase()}</b><br>Damage: ${Math.round(activeTower.damage)}`;
+        document.getElementById('stats-content').innerHTML = `<b>${activeTower.type.toUpperCase()}</b><br>${activeTower.damage ? 'Skade: '+Math.round(activeTower.damage) : 'Inntekt: '+activeTower.income}`;
     }
 
     function updateUpgradeMenu() {
