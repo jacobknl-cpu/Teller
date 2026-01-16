@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <title>TD Evolution: Camo Update</title>
+    <title>TD Evolution: Rebalanced & Visuals</title>
     <style>
         :root {
             --bg: #020617; --panel: #0f172a; --text: #38bdf8;
@@ -12,13 +12,14 @@
         body { margin: 0; background: var(--bg); color: #f8fafc; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         #ui-top { padding: 10px; background: var(--panel); display: flex; gap: 20px; justify-content: center; border-bottom: 2px solid #1e293b; }
         #game-area { display: none; padding: 20px; gap: 20px; justify-content: center; }
-        canvas { background: #064e3b; border: 2px solid #334155; border-radius: 8px; }
-        #side-panel { width: 380px; background: var(--panel); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; height: 90vh; overflow-y: auto; }
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .tower-option { background: #1e293b; padding: 10px; border-radius: 5px; cursor: pointer; border: 1px solid #334155; text-align: center; font-size: 13px; }
-        .path-row { background: var(--path); margin: 5px 0; padding: 8px; border-radius: 6px; border-left: 4px solid var(--accent); }
-        .up-btn { width: 100%; padding: 6px; border: none; border-radius: 4px; background: var(--success); color: white; font-weight: bold; cursor: pointer; }
-        .up-btn:disabled { background: var(--locked); cursor: not-allowed; }
+        canvas { background: #064e3b; border: 2px solid #334155; border-radius: 8px; cursor: crosshair; }
+        #side-panel { width: 350px; background: var(--panel); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; height: 90vh; overflow-y: auto; }
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .tower-option { background: #1e293b; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid #334155; text-align: center; transition: 0.2s; }
+        .tower-option:hover { border-color: var(--accent); background: #233149; }
+        .path-row { background: var(--path); margin: 5px 0; padding: 10px; border-radius: 6px; border-left: 4px solid var(--accent); }
+        .up-btn { width: 100%; padding: 8px; border: none; border-radius: 4px; background: var(--success); color: white; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        .up-btn:disabled { background: var(--locked); cursor: not-allowed; opacity: 0.5; }
         .btn-main { padding: 12px; background: var(--success); border: none; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; width: 100%; }
         .target-btn { background: #475569; color: white; padding: 8px; border-radius: 5px; border: 1px solid white; cursor: pointer; margin-bottom: 10px; width: 100%; font-weight: bold; }
         .overlay { position: fixed; inset: 0; background: rgba(2,6,23,0.95); display: flex; align-items: center; justify-content: center; z-index: 100; }
@@ -29,8 +30,8 @@
 
 <div id="main-menu" class="overlay">
     <div style="text-align:center; padding: 40px; background: var(--panel); border-radius: 20px; border: 2px solid var(--accent);">
-        <h1 style="color:var(--text)">TD EVOLUTION: CAMO</h1>
-        <p>Pass på! Camo-fiender er vanskelige å se.<br>Oppgrader tårnene for "Camo Detection".</p>
+        <h1 style="color:var(--text)">TD EVOLUTION: FIX</h1>
+        <p>Balansert økonomi og unike skudd-effekter er tilbake!</p>
         <button class="btn-main" onclick="startGame()">START SPILL</button>
     </div>
 </div>
@@ -42,8 +43,9 @@
 
 <div id="ui-top">
     <span>💰 <b id="money-display">0</b></span>
+    <span>❤️ Liv: <b id="lives-display">100</b></span>
     <span>👾 Bølge: <b id="wave-display">0</b></span>
-    <span>📈 Rente: <b id="interest-val">2</b>%</span>
+    <span>📈 Rente: <b id="interest-val">0.5</b>%</span>
 </div>
 
 <div id="game-area">
@@ -53,22 +55,22 @@
             <button id="speed-btn" onclick="toggleSpeed()" class="btn-main" style="flex:1; padding:8px; font-size:12px">FAST (2x)</button>
             <button id="auto-btn" onclick="toggleAuto()" class="btn-main" style="flex:1; padding:8px; font-size:12px; background:var(--path)">AUTO</button>
         </div>
-        <button onclick="nextWave()" class="btn-main">NESTE BØLGE</button>
+        <button onclick="nextWave()" class="btn-main" style="background:var(--accent)">NESTE BØLGE</button>
         
         <div class="shop-grid">
-            <div class="tower-option" onclick="selectTower('basic', 250)">Standard</div>
-            <div class="tower-option" onclick="selectTower('sniper', 600)">Sniper</div>
-            <div class="tower-option" onclick="selectTower('artillery', 850)">Artilleri</div>
-            <div class="tower-option" onclick="selectTower('farm', 1000)">Gullgruve</div>
-            <div class="tower-option" onclick="selectTower('tesla', 1100)">Tesla</div>
-            <div class="tower-option" onclick="selectTower('frost', 750)">Frost</div>
+            <div class="tower-option" onclick="selectTower('basic', 200)">Standard (200)</div>
+            <div class="tower-option" onclick="selectTower('sniper', 500)">Sniper (500)</div>
+            <div class="tower-option" onclick="selectTower('artillery', 700)">Artilleri (700)</div>
+            <div class="tower-option" onclick="selectTower('farm', 800)" style="color:var(--money)">Gullgruve (800)</div>
+            <div class="tower-option" onclick="selectTower('tesla', 900)">Tesla (900)</div>
+            <div class="tower-option" onclick="selectTower('frost', 600)">Frost (600)</div>
         </div>
 
         <div id="tower-menu" style="display:none">
             <h3 id="menu-tower-name" style="margin:10px 0 5px 0; color:var(--text)">TÅRN</h3>
             <button id="target-toggle" class="target-btn" onclick="toggleTargeting()">Mål: First</button>
             <div id="upgrades-list"></div>
-            <button class="btn-main" style="background:var(--danger); margin-top:10px;" onclick="sellActiveTower()">SELG</button>
+            <button class="btn-main" style="background:var(--danger); margin-top:10px;" onclick="sellActiveTower()">SELG (70%)</button>
         </div>
     </div>
 </div>
@@ -78,26 +80,19 @@
     const ctx = canvas.getContext('2d');
     const gridSize = 40;
 
-    let money = 1500, lives = 100, wave = 0, baseSpeed = 2, turboMultiplier = 1, autoStart = false, globalInterest = 0.02;
+    let money = 800, lives = 100, wave = 0, baseSpeed = 2, turboMultiplier = 1, autoStart = false, globalInterest = 0.005;
     let towers = [], enemies = [], projectiles = [], activeTower = null;
     let ghostTower = null, selectedTowerType = null, selectedTowerCost = 0;
     
     const waypoints = [{x:0,y:100}, {x:520,y:100}, {x:520,y:300}, {x:120,y:300}, {x:120,y:500}, {x:800,y:500}];
 
-    const enemyTypes = [
-        { hp: 100, speed: 1.0, color: "#f43f5e", reward: 20, camo: false },
-        { hp: 120, speed: 1.6, color: "#3b82f6", reward: 25, camo: false },
-        { hp: 150, speed: 1.4, color: "#a855f7", reward: 40, camo: true }, // Camo (Lilla)
-        { hp: 400, speed: 0.8, color: "#10b981", reward: 40, camo: false }
-    ];
-
     const towerDefinitions = {
-        'basic': { name: "Standard", color: '#38bdf8', cost: 250, base: { range: 160, fireRate: 35, damage: 40, canSeeCamo: false }, paths: [{ name: "Skade", trait: "damage", val: 1.5, price: 300 }, { name: "Fart", trait: "fireRate", val: 0.7, price: 400 }, { name: "Radar/Rekke", trait: "canSeeCamo", val: true, price: 350 }] },
-        'sniper': { name: "Sniper", color: '#facc15', cost: 600, base: { range: 2000, fireRate: 100, damage: 300, aoe: 0, canSeeCamo: false }, paths: [{ name: "Skade", trait: "damage", val: 2.0, price: 800 }, { name: "Fart", trait: "fireRate", val: 0.6, price: 750 }, { name: "Skarpe Briller", trait: "canSeeCamo", val: true, price: 500 }] },
-        'artillery': { name: "Artilleri", color: '#f87171', cost: 850, base: { range: 220, fireRate: 140, damage: 450, aoe: 80, canSeeCamo: false }, paths: [{ name: "Radius", trait: "aoe", val: 1.5, price: 500 }, { name: "Skade", trait: "damage", val: 1.5, price: 700 }, { name: "Fart", trait: "fireRate", val: 0.8, price: 600 }] },
-        'farm': { name: "Gullgruve", color: '#fbbf24', cost: 1000, base: { range: 0, fireRate: 300, income: 150, interestBonus: 0 }, paths: [{ name: "Produksjon", trait: "income", val: 1.8, price: 800 }, { name: "Fart", trait: "fireRate", val: 0.6, price: 900 }, { name: "Rente", trait: "interestBonus", val: 0.01, price: 1500 }] },
-        'tesla': { name: "Tesla", color: '#c084fc', cost: 1100, base: { range: 160, fireRate: 60, damage: 120, chain: 1, canSeeCamo: false }, paths: [{ name: "Skade", trait: "damage", val: 1.5, price: 850 }, { name: "Kjede", trait: "chain", val: 2, price: 1100 }, { name: "Radar Puls", trait: "canSeeCamo", val: true, price: 600 }] },
-        'frost': { name: "Frost", color: '#60a5fa', cost: 750, base: { range: 170, fireRate: 70, damage: 20, freeze: 30, canSeeCamo: false }, paths: [{ name: "Frys", trait: "freeze", val: 2.0, price: 500 }, { name: "Rekke", trait: "range", val: 1.4, price: 400 }, { name: "Fart", trait: "fireRate", val: 0.7, price: 600 }] }
+        'basic': { name: "Standard", color: '#38bdf8', projColor: '#38bdf8', cost: 200, base: { range: 160, fireRate: 40, damage: 30, canSeeCamo: false }, paths: [{ name: "Skade", trait: "damage", val: 1.4, price: 200 }, { name: "Fart", trait: "fireRate", val: 0.8, price: 250 }, { name: "Radar", trait: "canSeeCamo", val: true, price: 300 }] },
+        'sniper': { name: "Sniper", color: '#facc15', projColor: '#fbbf24', cost: 500, base: { range: 2000, fireRate: 120, damage: 150, aoe: 0, canSeeCamo: false }, paths: [{ name: "Skade", trait: "damage", val: 1.8, price: 600 }, { name: "Fart", trait: "fireRate", val: 0.7, price: 500 }, { name: "Briller (Camo)", trait: "canSeeCamo", val: true, price: 400 }] },
+        'artillery': { name: "Artilleri", color: '#f87171', projColor: '#ef4444', cost: 700, base: { range: 200, fireRate: 150, damage: 200, aoe: 70, canSeeCamo: false }, paths: [{ name: "Radius", trait: "aoe", val: 1.4, price: 400 }, { name: "Skade", trait: "damage", val: 1.5, price: 500 }, { name: "Fart", trait: "fireRate", val: 0.8, price: 450 }] },
+        'farm': { name: "Gullgruve", color: '#fbbf24', cost: 800, base: { range: 0, fireRate: 400, income: 100, interestBonus: 0.001 }, paths: [{ name: "Produksjon", trait: "income", val: 1.5, price: 600 }, { name: "Tempo", trait: "fireRate", val: 0.7, price: 700 }, { name: "Bank Rente", trait: "interestBonus", val: 0.002, price: 1000 }] },
+        'tesla': { name: "Tesla", color: '#c084fc', projColor: '#a855f7', cost: 900, base: { range: 150, fireRate: 70, damage: 80, chain: 1, canSeeCamo: false }, paths: [{ name: "Styrke", trait: "damage", val: 1.4, price: 600 }, { name: "Kjede", trait: "chain", val: 1, price: 800 }, { name: "Radar", trait: "canSeeCamo", val: true, price: 500 }] },
+        'frost': { name: "Frost", color: '#60a5fa', projColor: '#93c5fd', cost: 600, base: { range: 170, fireRate: 80, damage: 10, freeze: 25, canSeeCamo: false }, paths: [{ name: "Kulde", trait: "freeze", val: 1.5, price: 400 }, { name: "Rekke", trait: "range", val: 1.3, price: 300 }, { name: "Fart", trait: "fireRate", val: 0.8, price: 400 }] }
     };
 
     function startGame() { document.getElementById('main-menu').style.display = 'none'; document.getElementById('game-area').style.display = 'flex'; updateUI(); requestAnimationFrame(gameLoop); }
@@ -116,12 +111,7 @@
     function confirmPlacement() {
         if (money >= selectedTowerCost) {
             const def = towerDefinitions[selectedTowerType];
-            towers.push({ 
-                x: ghostTower.x, y: ghostTower.y, type: selectedTowerType, 
-                timer: 0, levels: [0, 0, 0], totalSpent: selectedTowerCost, 
-                targetMode: 'First', 
-                ...JSON.parse(JSON.stringify(def.base)), color: def.color, name: def.name 
-            });
+            towers.push({ x: ghostTower.x, y: ghostTower.y, type: selectedTowerType, timer: 0, levels: [0, 0, 0], totalSpent: selectedTowerCost, targetMode: 'First', ...JSON.parse(JSON.stringify(def.base)), color: def.color, projColor: def.projColor, name: def.name });
             money -= selectedTowerCost; calculateGlobalInterest(); cancelPlacement(); updateUI();
         }
     }
@@ -131,154 +121,159 @@
     function toggleTargeting() {
         if (!activeTower || activeTower.type === 'farm') return;
         const modes = ['First', 'Strong', 'Last'];
-        let currentIdx = modes.indexOf(activeTower.targetMode);
-        activeTower.targetMode = modes[(currentIdx + 1) % modes.length];
+        activeTower.targetMode = modes[(modes.indexOf(activeTower.targetMode) + 1) % modes.length];
         updateUI();
     }
 
     function buyUpgrade(idx) {
         const def = towerDefinitions[activeTower.type];
         const p = def.paths[idx];
-        const price = p.price * (activeTower.levels[idx] + 1);
+        const price = Math.floor(p.price * Math.pow(1.2, activeTower.levels[idx]));
         if (money >= price && canUpgrade(idx)) {
             money -= price; activeTower.totalSpent += price; activeTower.levels[idx]++;
             if (p.trait === "fireRate") activeTower[p.trait] *= p.val;
             else if (p.trait === "chain" || p.trait === "interestBonus") activeTower[p.trait] += p.val;
             else if (p.trait === "canSeeCamo") activeTower[p.trait] = true;
-            else if (p.trait === "aoe" && activeTower.type === 'sniper') activeTower[p.trait] = p.val + (activeTower.levels[idx] * 20);
             else activeTower[p.trait] *= p.val;
             calculateGlobalInterest(); updateUI();
         }
     }
 
     function canUpgrade(idx) {
-        const lvls = activeTower.levels;
-        if (lvls[idx] >= 5) return false;
-        const pathsInUse = lvls.filter(l => l > 0).length;
-        if (pathsInUse === 2 && lvls[idx] === 0) return false;
-        const pathOver2 = lvls.findIndex(l => l >= 2);
-        if (pathOver2 !== -1 && lvls[idx] >= 2 && pathOver2 !== idx) return false;
-        return true;
+        if (!activeTower || activeTower.levels[idx] >= 5) return false;
+        const totalLevels = activeTower.levels.reduce((a, b) => a + b, 0);
+        return true; 
     }
 
     function calculateGlobalInterest() {
         let extra = 0;
         towers.forEach(t => { if(t.type === 'farm') extra += t.interestBonus; });
-        globalInterest = 0.02 + extra;
-        document.getElementById('interest-val').innerText = (globalInterest * 100).toFixed(1);
+        globalInterest = 0.005 + extra;
+        document.getElementById('interest-val').innerText = (globalInterest * 100).toFixed(2);
     }
 
     function nextWave() {
         if (enemies.length > 0) return;
         money += Math.floor(money * globalInterest);
         wave++; updateUI();
-        for (let i = 0; i < 12 + wave * 3; i++) {
+        const count = 10 + wave * 2;
+        for (let i = 0; i < count; i++) {
             setTimeout(() => {
-                let r = Math.random();
-                let type;
-                if (wave > 8 && r < 0.25) type = enemyTypes[2]; // Camo dukker opp etter bølge 8
-                else type = enemyTypes[Math.floor(Math.random() * 2)];
-                
+                let isCamo = (wave > 5 && Math.random() < 0.2);
                 enemies.push({ 
-                    x: 0, y: 100, health: type.hp * (1 + wave * 0.25), maxH: type.hp * (1 + wave * 0.25), 
-                    speed: type.speed, color: type.color, reward: type.reward, targetIdx: 1, 
-                    distanceTraveled: 0, camo: type.camo,
-                    slowTimer: 0, stunTimer: 0 
+                    x: 0, y: 100, health: 80 * Math.pow(1.15, wave), maxH: 80 * Math.pow(1.15, wave), 
+                    speed: 1 + (wave * 0.05), reward: 15, targetIdx: 1, 
+                    distanceTraveled: 0, camo: isCamo, stunTimer: 0 
                 });
-            }, i * (350 / (baseSpeed * turboMultiplier)));
+            }, i * (400 / (baseSpeed * turboMultiplier)));
         }
     }
 
     function gameLoop() {
         const tick = baseSpeed * turboMultiplier;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 35; ctx.beginPath(); ctx.moveTo(0, 100); waypoints.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
+        
+        // Bane
+        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 35; ctx.beginPath(); ctx.moveTo(0, 100); 
+        waypoints.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
 
+        // Fiender
         enemies.forEach((e, i) => {
             if (e.stunTimer > 0) e.stunTimer -= tick;
             else {
                 const target = waypoints[e.targetIdx];
                 const dist = Math.hypot(target.x - e.x, target.y - e.y);
-                if (dist < 5) { e.targetIdx++; if (e.targetIdx >= waypoints.length) { lives -= 5; enemies.splice(i, 1); updateUI(); return; } }
+                if (dist < 5) { e.targetIdx++; if (e.targetIdx >= waypoints.length) { lives -= 10; enemies.splice(i, 1); updateUI(); return; } }
                 const moveDist = e.speed * tick;
-                e.x += ((target.x - e.x) / dist) * moveDist; 
-                e.y += ((target.y - e.y) / dist) * moveDist;
+                e.x += ((target.x - e.x) / dist) * moveDist; e.y += ((target.y - e.y) / dist) * moveDist;
                 e.distanceTraveled += moveDist;
             }
-            ctx.globalAlpha = e.camo ? 0.4 : 1.0;
-            ctx.fillStyle = e.color; ctx.beginPath(); ctx.arc(e.x, e.y, 10, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = e.camo ? 0.3 : 1.0;
+            ctx.fillStyle = e.camo ? '#a855f7' : '#f43f5e';
+            ctx.beginPath(); ctx.arc(e.x, e.y, 10, 0, Math.PI*2); ctx.fill();
             ctx.globalAlpha = 1.0;
         });
 
+        // Tårn
         towers.forEach(t => {
             t.timer += tick;
             if (t.type === 'farm') {
                 if (t.timer >= t.fireRate) { money += t.income; t.timer = 0; updateUI(); }
             } else if (t.timer >= t.fireRate) {
-                // Sjekker om tårnet kan se Camo
-                let inRangeEnemies = enemies.filter(e => {
-                    const dist = Math.hypot(e.x - t.x, e.y - t.y);
-                    if (e.camo && !t.canSeeCamo) return false;
-                    return dist < t.range;
-                });
-
+                let targets = enemies.filter(e => Math.hypot(e.x - t.x, e.y - t.y) < t.range && (!e.camo || t.canSeeCamo));
                 let target = null;
-                if (inRangeEnemies.length > 0) {
-                    if (t.targetMode === 'First') target = inRangeEnemies.sort((a, b) => b.distanceTraveled - a.distanceTraveled)[0];
-                    else if (t.targetMode === 'Last') target = inRangeEnemies.sort((a, b) => a.distanceTraveled - b.distanceTraveled)[0];
-                    else if (t.targetMode === 'Strong') target = inRangeEnemies.sort((a, b) => b.health - a.health)[0];
+                if (targets.length > 0) {
+                    if (t.targetMode === 'First') target = targets.sort((a,b) => b.distanceTraveled - a.distanceTraveled)[0];
+                    else if (t.targetMode === 'Strong') target = targets.sort((a,b) => b.health - a.health)[0];
+                    else target = targets.sort((a,b) => a.distanceTraveled - b.distanceTraveled)[0];
                 }
-                
+
                 if (target) {
-                    if (t.type === 'sniper' && t.aoe > 0) {
-                        enemies.forEach(en => { 
-                            if(Math.hypot(en.x - target.x, en.y - target.y) < t.aoe) {
-                                if (!en.camo || t.canSeeCamo) en.health -= t.damage;
-                            }
-                        });
-                        ctx.strokeStyle = "white"; ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(target.x, target.y); ctx.stroke();
-                    } else if (t.type === 'tesla') {
-                        inRangeEnemies.slice(0, t.chain).forEach(tgt => { tgt.health -= t.damage; ctx.strokeStyle = "#c084fc"; ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(tgt.x, tgt.y); ctx.stroke(); });
-                    } else if (t.type === 'frost') {
-                        target.stunTimer = t.freeze; target.health -= t.damage;
-                    } else {
-                        projectiles.push({ x: t.x, y: t.y, target, speed: 12 * tick, damage: t.damage, type: t.type, aoe: t.aoe });
-                    }
                     t.timer = 0;
+                    if (t.type === 'sniper') {
+                        target.health -= t.damage;
+                        ctx.strokeStyle = t.projColor; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(target.x, target.y); ctx.stroke();
+                    } else if (t.type === 'tesla') {
+                        targets.slice(0, t.chain + 1).forEach(tgt => { 
+                            tgt.health -= t.damage; 
+                            ctx.strokeStyle = t.projColor; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(tgt.x, tgt.y); ctx.stroke();
+                        });
+                    } else {
+                        projectiles.push({ x: t.x, y: t.y, target, speed: 10 * tick, damage: t.damage, color: t.projColor, aoe: t.aoe, type: t.type, freeze: t.freeze });
+                    }
                 }
             }
             ctx.fillStyle = t.color; ctx.fillRect(t.x-15, t.y-15, 30, 30);
-            if (t.canSeeCamo) { ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.strokeRect(t.x-18, t.y-18, 36, 36); }
+            if (activeTower === t) { ctx.strokeStyle = 'white'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI*2); ctx.stroke(); }
         });
 
+        // Prosjektiler
         projectiles.forEach((p, pi) => {
             const dist = Math.hypot(p.target.x - p.x, p.target.y - p.y);
-            if (dist < 10) {
-                if (p.aoe > 0) enemies.forEach(en => { if(Math.hypot(en.x-p.target.x, en.y-p.target.y) < p.aoe) en.health -= p.damage; });
-                else p.target.health -= p.damage;
+            if (dist < 10 || !enemies.includes(p.target)) {
+                if (p.aoe > 0) {
+                    ctx.fillStyle = p.color; ctx.globalAlpha = 0.3; ctx.beginPath(); ctx.arc(p.x, p.y, p.aoe, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1.0;
+                    enemies.forEach(en => { if(Math.hypot(en.x-p.x, en.y-p.y) < p.aoe) en.health -= p.damage; });
+                } else {
+                    p.target.health -= p.damage;
+                    if (p.type === 'frost') p.target.stunTimer = p.freeze;
+                }
                 projectiles.splice(pi, 1);
-            } else { p.x += ((p.target.x - p.x) / dist) * p.speed; p.y += ((p.target.y - p.y) / dist) * p.speed; ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill(); }
+            } else {
+                p.x += ((p.target.x - p.x) / dist) * p.speed; p.y += ((p.target.y - p.y) / dist) * p.speed;
+                ctx.fillStyle = p.color; 
+                let size = p.type === 'artillery' ? 6 : 4;
+                ctx.beginPath(); ctx.arc(p.x, p.y, size, 0, Math.PI*2); ctx.fill();
+            }
         });
 
         enemies = enemies.filter(e => { if(e.health <= 0) money += e.reward; return e.health > 0; });
         if (autoStart && enemies.length === 0) nextWave();
-        if (lives <= 0) { alert("Game Over!"); location.reload(); }
+        if (lives <= 0) { alert("Spillet er slutt! Du nådde bølge " + wave); location.reload(); }
         requestAnimationFrame(gameLoop);
     }
 
     function updateUI() {
         document.getElementById('money-display').innerText = Math.floor(money);
+        document.getElementById('lives-display').innerText = lives;
         document.getElementById('wave-display').innerText = wave;
         if (activeTower) {
             document.getElementById('tower-menu').style.display = 'block';
             document.getElementById('menu-tower-name').innerText = activeTower.name;
             const targetBtn = document.getElementById('target-toggle');
-            if (activeTower.type === 'farm') targetBtn.style.display = 'none';
-            else { targetBtn.style.display = 'block'; targetBtn.innerText = "Mål: " + activeTower.targetMode; }
+            targetBtn.style.display = activeTower.type === 'farm' ? 'none' : 'block';
+            targetBtn.innerText = "Mål: " + activeTower.targetMode;
+            
             const upList = document.getElementById('upgrades-list'); upList.innerHTML = '';
             towerDefinitions[activeTower.type].paths.forEach((p, i) => {
-                const lv = activeTower.levels[i]; const price = p.price * (lv + 1); const allowed = canUpgrade(i);
-                upList.innerHTML += `<div class="path-row"><span>${p.name} (${lv}/5)</span><button class="up-btn" onclick="buyUpgrade(${i})" ${!allowed || money < price ? 'disabled' : ''}>${lv >= 5 ? 'MAX' : (allowed ? price + 'g' : 'LÅST')}</button></div>`;
+                const lv = activeTower.levels[i];
+                const price = Math.floor(p.price * Math.pow(1.2, lv));
+                upList.innerHTML += `<div class="path-row">
+                    <div style="display:flex; justify-content:space-between"><span>${p.name}</span> <span>Lv ${lv}</span></div>
+                    <button class="up-btn" onclick="buyUpgrade(${i})" ${money < price || lv >= 5 ? 'disabled' : ''}>
+                        ${lv >= 5 ? 'MAX' : 'Oppgrader: ' + price + 'g'}
+                    </button>
+                </div>`;
             });
         } else { document.getElementById('tower-menu').style.display = 'none'; }
     }
