@@ -2,49 +2,73 @@
 <html lang="no">
 <head>
     <meta charset="UTF-8">
-    <title>Core Defense: Animated Evolution</title>
+    <title>Core Defense: Pro Edition</title>
     <style>
         :root {
             --bg: #0f172a; --panel: #1e293b; --text: #f1f5f9;
             --accent: #38bdf8; --money: #f59e0b; --danger: #e11d48; --success: #10b981;
         }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
-        #ui-top { padding: 15px; background: rgba(15, 23, 42, 0.9); display: flex; gap: 30px; justify-content: center; border-bottom: 2px solid var(--accent); font-weight: bold; font-size: 1.2rem; }
-        #game-area { display: flex; padding: 20px; gap: 20px; justify-content: center; }
-        canvas { background: #020617; border: 2px solid #334155; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        #side-panel { width: 300px; background: var(--panel); padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; }
-        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .tower-btn { background: #334155; border: 1px solid var(--accent); color: white; padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-        .tower-btn:hover { background: var(--accent); color: #000; }
-        .btn-wave { background: var(--success); border: none; color: white; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
-        .upgrade-card { background: #0f172a; padding: 10px; border-radius: 8px; border-left: 4px solid var(--accent); margin-bottom: 8px; }
-        .up-btn { width: 100%; margin-top: 5px; padding: 8px; background: var(--success); border: none; color: white; border-radius: 4px; cursor: pointer; }
-        .up-btn:disabled { background: #475569; cursor: not-allowed; }
-        #confirm-ui { position: absolute; display: none; gap: 10px; background: var(--panel); padding: 10px; border-radius: 8px; border: 2px solid var(--accent); z-index: 100; }
+        #ui-top { padding: 12px; background: rgba(15, 23, 42, 0.95); display: flex; gap: 25px; justify-content: center; border-bottom: 2px solid var(--accent); font-weight: bold; }
+        #game-area { display: flex; padding: 15px; gap: 15px; justify-content: center; }
+        canvas { background: #020617; border: 2px solid #334155; border-radius: 8px; }
+        
+        #side-panel { width: 280px; background: var(--panel); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px; height: 85vh; overflow-y: auto; }
+        
+        .control-group { display: flex; gap: 5px; flex-wrap: wrap; }
+        .btn-sm { flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; background: #334155; color: white; }
+        .active-speed { background: var(--accent); color: #000; }
+        
+        .auto-toggle { display: flex; align-items: center; justify-content: space-between; background: #0f172a; padding: 10px; border-radius: 6px; font-size: 0.9rem; }
+        
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .tower-btn { background: #334155; border: 1px solid #475569; color: white; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+        .tower-btn:hover { border-color: var(--accent); }
+        
+        .btn-wave { background: var(--success); border: none; color: white; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        .upgrade-card { background: #0f172a; padding: 8px; border-radius: 6px; border-left: 3px solid var(--accent); margin-bottom: 5px; font-size: 0.85rem; }
+        .up-btn { width: 100%; margin-top: 4px; padding: 6px; background: var(--success); border: none; color: white; border-radius: 4px; cursor: pointer; }
+        
+        #confirm-ui { position: absolute; display: none; gap: 8px; background: var(--panel); padding: 8px; border-radius: 6px; border: 2px solid var(--accent); z-index: 100; }
     </style>
 </head>
 <body>
 
 <div id="ui-top">
-    <span>Credits: <span id="money-txt" style="color:var(--money)">0</span></span>
-    <span>Integrity: <span id="lives-txt" style="color:var(--danger)">0</span></span>
+    <span>💰 <span id="money-txt" style="color:var(--money)">0</span></span>
+    <span>❤️ <span id="lives-txt" style="color:var(--danger)">0</span></span>
     <span>Sector: <span id="wave-txt">0</span></span>
 </div>
 
 <div id="game-area">
     <div id="confirm-ui">
-        <button onclick="confirmBuild()" style="background:var(--success); color:white; border:none; padding:8px 15px; border-radius:4px; cursor:pointer;">BUILD</button>
-        <button onclick="cancelBuild()" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:4px; cursor:pointer;">X</button>
+        <button onclick="confirmBuild()" style="background:var(--success); color:white; border:none; padding:5px 10px; border-radius:4px;">BUILD</button>
+        <button onclick="cancelBuild()" style="background:var(--danger); color:white; border:none; padding:5px 10px; border-radius:4px;">X</button>
     </div>
+
     <canvas id="gameCanvas" width="800" height="600"></canvas>
+
     <div id="side-panel">
-        <button class="btn-wave" onclick="startSector()">INITIATE NEXT SECTOR</button>
+        <div class="control-group">
+            <button class="btn-sm active-speed" id="s1" onclick="setSpeed(1)">1x</button>
+            <button class="btn-sm" id="s2" onclick="setSpeed(2)">2x</button>
+            <button class="btn-sm" id="s4" onclick="setSpeed(4)">4x</button>
+        </div>
+
+        <div class="auto-toggle">
+            <span>AUTO-START</span>
+            <input type="checkbox" id="auto-wave" onchange="toggleAuto()">
+        </div>
+
+        <button class="btn-wave" id="wave-btn" onclick="startSector()">START NEXT SECTOR</button>
+        
         <div class="shop-grid" id="shop"></div>
+        
         <div id="inspector" style="display:none; border-top: 1px solid #475569; padding-top:10px;">
-            <h3 id="ins-name" style="margin:0; color:var(--accent)">UNIT</h3>
-            <p id="ins-stats" style="font-size:0.8rem; margin:5px 0; opacity:0.8;">Kills: 0</p>
+            <h4 id="ins-name" style="margin:0; color:var(--accent)">UNIT</h4>
             <div id="up-list"></div>
-            <button onclick="sellUnit()" style="width:100%; margin-top:10px; background:transparent; border:1px solid var(--danger); color:var(--danger); padding:5px; cursor:pointer;">RECYCLE UNIT</button>
+            <button onclick="sellUnit()" style="width:100%; margin-top:8px; background:transparent; border:1px solid var(--danger); color:var(--danger); padding:4px; font-size:0.7rem;">RECYCLE</button>
         </div>
     </div>
 </div>
@@ -52,23 +76,28 @@
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-let money = 1200, lives = 100, wave = 0, isWaveActive = false, frame = 0;
+
+let money = 800, lives = 100, wave = 0, isWaveActive = false, frame = 0;
+let gameSpeed = 1, autoWave = false;
 let towers = [], enemies = [], projectiles = [], floatingTexts = [];
 let selectedType = null, pendingPos = null, activeTower = null;
 
 const units = {
-    'pulse': { name: 'Pulse Unit', cost: 250, range: 140, rate: 40, dmg: 1, color: '#38bdf8', pColor: '#7dd3fc' },
-    'beam': { name: 'Beam Unit', cost: 500, range: 400, rate: 80, dmg: 2, color: '#fbbf24', pColor: '#fde68a' },
-    'blast': { name: 'Blast Core', cost: 800, range: 180, rate: 120, dmg: 1, aoe: 80, color: '#f87171', pColor: '#ef4444' },
-    'gen': { name: 'Credit Gen', cost: 1000, range: 0, rate: 400, income: 350, color: '#a855f7', pColor: '#d8b4fe' }
+    'pulse': { name: 'Pulse Unit', cost: 200, range: 130, rate: 45, dmg: 1, color: '#38bdf8', pColor: '#7dd3fc' },
+    'beam': { name: 'Beam Unit', cost: 450, range: 350, rate: 80, dmg: 2, color: '#fbbf24', pColor: '#fde68a' },
+    'blast': { name: 'Blast Core', cost: 750, range: 170, rate: 110, dmg: 1, aoe: 70, color: '#f87171', pColor: '#ef4444' },
+    'gen': { name: 'Credit Gen', cost: 900, range: 0, rate: 450, income: 200, color: '#a855f7', pColor: '#d8b4fe' }
 };
 
 const path = [{x:0, y:300}, {x:200, y:300}, {x:200, y:100}, {x:600, y:100}, {x:600, y:500}, {x:400, y:500}, {x:400, y:300}, {x:800, y:300}];
 
-function renderShop() {
-    const shop = document.getElementById('shop'); shop.innerHTML = '';
-    for(let id in units) { shop.innerHTML += `<button class="tower-btn" onclick="prepBuild('${id}')">${units[id].name}<br>${units[id].cost}c</button>`; }
+function setSpeed(s) {
+    gameSpeed = s;
+    [1,2,4].forEach(v => document.getElementById('s'+v).classList.remove('active-speed'));
+    document.getElementById('s'+s).classList.add('active-speed');
 }
+
+function toggleAuto() { autoWave = document.getElementById('auto-wave').checked; }
 
 function prepBuild(id) { selectedType = id; activeTower = null; updateUI(); }
 
@@ -79,14 +108,14 @@ canvas.addEventListener('mousedown', (e) => {
     if(selectedType) {
         pendingPos = {x, y};
         const ui = document.getElementById('confirm-ui'); ui.style.display = 'flex';
-        ui.style.left = (e.clientX - 40) + "px"; ui.style.top = (e.clientY + 20) + "px";
+        ui.style.left = (e.clientX - 35) + "px"; ui.style.top = (e.clientY + 15) + "px";
     } else { activeTower = towers.find(t => t.x === x && t.y === y); updateUI(); }
 });
 
 function confirmBuild() {
     if(money >= units[selectedType].cost) {
         money -= units[selectedType].cost;
-        towers.push({...units[selectedType], x: pendingPos.x, y: pendingPos.y, type: selectedType, levels: [0,0,0], timer: 0, kills: 0, upBase: units[selectedType].cost});
+        towers.push({...units[selectedType], x: pendingPos.x, y: pendingPos.y, type: selectedType, levels: [0,0,0], timer: 0, kills: 0, upBase: units[selectedType].cost, shock: 0});
         cancelBuild();
     }
 }
@@ -95,17 +124,25 @@ function cancelBuild() { selectedType = null; pendingPos = null; document.getEle
 function startSector() {
     if(isWaveActive) return;
     wave++; isWaveActive = true; updateUI();
-    let count = 10 + wave * 2, spawnCount = 0;
+    let count = 10 + Math.floor(wave * 1.5), spawnCount = 0;
     let timer = setInterval(() => {
-        let hp = 1 + Math.floor(wave/5);
-        enemies.push({x: path[0].x, y: path[0].y, hp, maxHp: hp, speed: 1.5 + (wave*0.05), targetIdx: 1, dist: 0});
+        let hp = 1 + Math.floor(wave/4);
+        enemies.push({x: path[0].x, y: path[0].y, hp, maxHp: hp, speed: 1.4 + (wave*0.04), targetIdx: 1, dist: 0});
         spawnCount++; if(spawnCount >= count) clearInterval(timer);
-    }, 600);
+    }, 600 / gameSpeed);
 }
 
 function gameLoop() {
-    frame++;
-    if(lives <= 0) return alert("System Overload at Sector " + wave);
+    for(let i=0; i < gameSpeed; i++) { // Kjør logikk basert på hastighet
+        frame++;
+        updateLogic();
+    }
+    draw();
+    requestAnimationFrame(gameLoop);
+}
+
+function updateLogic() {
+    if(lives <= 0) return;
 
     enemies.forEach((e, i) => {
         let target = path[e.targetIdx];
@@ -119,7 +156,7 @@ function gameLoop() {
         if(t.type === 'gen') {
             if(isWaveActive && t.timer >= t.rate) {
                 money += t.income; t.timer = 0; updateUI();
-                floatingTexts.push({x: t.x, y: t.y, text: "+"+t.income, a: 1});
+                floatingTexts.push({x: t.x, y: t.y, text: "+"+Math.floor(t.income), a: 1});
             }
         } else if(t.timer >= t.rate) {
             let targets = enemies.filter(en => Math.hypot(en.x - t.x, en.y - t.y) < t.range);
@@ -127,9 +164,10 @@ function gameLoop() {
                 let target = targets.sort((a,b) => b.dist - a.dist)[0];
                 t.timer = 0;
                 projectiles.push({x: t.x, y: t.y, target, speed: 10, dmg: t.dmg, aoe: t.aoe || 0, color: t.pColor, tower: t});
-                if(t.type === 'blast') t.shock = 1; // Trigge sjokkbølge-animasjon
+                if(t.type === 'blast') t.shock = 0.1;
             }
         }
+        if(t.shock > 0) { t.shock += 0.05; if(t.shock > 1.5) t.shock = 0; }
     });
 
     projectiles.forEach((p, i) => {
@@ -141,17 +179,23 @@ function gameLoop() {
         } else { p.x += ((p.target.x - p.x)/d)*p.speed; p.y += ((p.target.y - p.y)/d)*p.speed; }
     });
 
-    floatingTexts.forEach((f, i) => { f.y -= 0.5; f.a -= 0.02; if(f.a <= 0) floatingTexts.splice(i,1); });
-    if(isWaveActive && enemies.length === 0) isWaveActive = false;
-
-    draw();
-    requestAnimationFrame(gameLoop);
+    floatingTexts.forEach((f, i) => { f.y -= 0.5; f.a -= 0.01; if(f.a <= 0) floatingTexts.splice(i,1); });
+    
+    if(isWaveActive && enemies.length === 0) {
+        isWaveActive = false;
+        if(autoWave) setTimeout(startSector, 1000);
+    }
 }
 
 function damageEnemy(e, tower) {
     if(!e) return;
     e.hp--;
-    if(e.hp <= 0) { money += 120; if(tower) tower.kills++; enemies.splice(enemies.indexOf(e), 1); updateUI(); }
+    if(e.hp <= 0) { 
+        money += 50; // Balansert belønning
+        if(tower) tower.kills++; 
+        enemies.splice(enemies.indexOf(e), 1); 
+        updateUI(); 
+    }
 }
 
 function draw() {
@@ -161,59 +205,31 @@ function draw() {
     path.forEach(p => ctx.lineTo(p.x, p.y)); ctx.stroke();
 
     towers.forEach(t => {
-        ctx.save();
-        ctx.translate(t.x, t.y);
-        
-        // --- UNIKE ANIMASJONER ---
+        ctx.save(); ctx.translate(t.x, t.y);
         if(t.type === 'pulse') {
-            let s = 15 + Math.sin(frame*0.1)*2;
             ctx.fillStyle = '#1e293b'; ctx.fillRect(-18, -18, 36, 36);
-            ctx.fillStyle = t.color; ctx.beginPath(); ctx.arc(0, 0, s-5, 0, Math.PI*2); ctx.fill();
-        } 
-        else if(t.type === 'beam') {
-            let rot = frame * 0.02;
-            let target = enemies.find(en => Math.hypot(en.x - t.x, en.y - t.y) < t.range);
-            if(target) rot = Math.atan2(target.y - t.y, target.x - t.x);
-            ctx.rotate(rot);
+            ctx.fillStyle = t.color; ctx.beginPath(); ctx.arc(0, 0, 10 + Math.sin(frame*0.05)*3, 0, Math.PI*2); ctx.fill();
+        } else if(t.type === 'beam') {
             ctx.fillStyle = t.color; ctx.fillRect(-15, -15, 30, 30);
-            ctx.fillStyle = 'white'; ctx.fillRect(5, -2, 15, 4);
-        } 
-        else if(t.type === 'blast') {
-            let bounce = Math.sin(frame*0.05)*5;
-            ctx.fillStyle = t.color; ctx.beginPath(); ctx.moveTo(-15, 15); ctx.lineTo(0, -20 + bounce); ctx.lineTo(15, 15); ctx.fill();
-            if(t.shock > 0) {
-                ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, bounce, t.shock*30, 0, Math.PI*2); ctx.stroke();
-                t.shock += 0.1; if(t.shock > 2) t.shock = 0;
-            }
-        } 
-        else if(t.type === 'gen') {
+            ctx.fillStyle = 'white'; ctx.fillRect(-2, -20, 4, 10);
+        } else if(t.type === 'blast') {
+            ctx.fillStyle = t.color; ctx.beginPath(); ctx.moveTo(-15, 15); ctx.lineTo(0, -15); ctx.lineTo(15, 15); ctx.fill();
+            if(t.shock > 0) { ctx.strokeStyle = 'rgba(255,255,255,'+(1-t.shock/1.5)+')'; ctx.beginPath(); ctx.arc(0,0, t.shock*40, 0, Math.PI*2); ctx.stroke(); }
+        } else if(t.type === 'gen') {
             ctx.fillStyle = t.color; ctx.fillRect(-15, -15, 30, 30);
-            for(let i=0; i<3; i++) {
-                let r = 20 + Math.sin(frame*0.1 + i)*5;
-                let ang = frame*0.05 + i*2;
-                ctx.fillStyle = 'white'; ctx.fillRect(Math.cos(ang)*r, Math.sin(ang)*r, 3, 3);
-            }
+            ctx.strokeStyle = 'white'; ctx.strokeRect(-18, -18, 36, 36);
         }
         ctx.restore();
-
-        if(activeTower === t) {
-            ctx.strokeStyle = 'white'; ctx.lineWidth = 1; ctx.setLineDash([5,5]);
-            ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
-        }
+        if(activeTower === t) { ctx.strokeStyle = 'white'; ctx.lineWidth = 1; ctx.setLineDash([5,5]); ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]); }
     });
-
-    if(pendingPos) { ctx.globalAlpha = 0.3; ctx.fillStyle = 'white'; ctx.fillRect(pendingPos.x-15, pendingPos.y-15, 30, 30); ctx.globalAlpha = 1; }
 
     enemies.forEach(e => {
         ctx.fillStyle = '#e11d48'; ctx.beginPath(); ctx.arc(e.x, e.y, 10, 0, Math.PI*2); ctx.fill();
-        if(e.hp < e.maxHp) {
-            ctx.fillStyle = '#000'; ctx.fillRect(e.x-10, e.y-15, 20, 3);
-            ctx.fillStyle = '#10b981'; ctx.fillRect(e.x-10, e.y-15, (e.hp/e.maxHp)*20, 3);
-        }
+        if(e.hp < e.maxHp) { ctx.fillStyle = '#000'; ctx.fillRect(e.x-10, e.y-15, 20, 3); ctx.fillStyle = '#10b981'; ctx.fillRect(e.x-10, e.y-15, (e.hp/e.maxHp)*20, 3); }
     });
 
     projectiles.forEach(p => { ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill(); });
-    floatingTexts.forEach(f => { ctx.globalAlpha = f.a; ctx.fillStyle = '#f59e0b'; ctx.font = "bold 14px Arial"; ctx.fillText(f.text, f.x-10, f.y); ctx.globalAlpha = 1; });
+    floatingTexts.forEach(f => { ctx.globalAlpha = f.a; ctx.fillStyle = '#f59e0b'; ctx.fillText(f.text, f.x-10, f.y); ctx.globalAlpha = 1; });
 }
 
 function updateUI() {
@@ -223,11 +239,10 @@ function updateUI() {
     if(activeTower) {
         document.getElementById('inspector').style.display = 'block';
         document.getElementById('ins-name').innerText = activeTower.name;
-        document.getElementById('ins-stats').innerText = `Kills: ${activeTower.kills}`;
         const list = document.getElementById('up-list'); list.innerHTML = '';
-        const config = activeTower.type === 'gen' ? [{n: 'Yield', k: 'income', m: 1.5}, {n: 'Frequency', k: 'rate', m: 0.85}] : [{n: 'Damage', k: 'dmg', m: 1.6}, {n: 'Rate', k: 'rate', m: 0.75}, {n: 'Scope', k: 'range', m: 1.25}];
-        config.forEach((u, i) => {
-            let cost = Math.floor(activeTower.upBase * 0.8 * Math.pow(1.8, activeTower.levels[i]));
+        const cfg = activeTower.type === 'gen' ? [{n: 'Yield', k: 'income', m: 1.4}, {n: 'Frequency', k: 'rate', m: 0.9}] : [{n: 'Power', k: 'dmg', m: 1.5}, {n: 'FireRate', k: 'rate', m: 0.8}, {n: 'Range', k: 'range', m: 1.15}];
+        cfg.forEach((u, i) => {
+            let cost = Math.floor(activeTower.upBase * 0.7 * Math.pow(1.6, activeTower.levels[i]));
             list.innerHTML += `<div class="upgrade-card"><span>${u.n} (Lv ${activeTower.levels[i]})</span><button class="up-btn" onclick="buyUpgrade(${i}, ${cost})" ${money < cost || activeTower.levels[i] >= 10 ? 'disabled' : ''}>${activeTower.levels[i] >= 10 ? 'MAX' : cost + 'c'}</button></div>`;
         });
     } else { document.getElementById('inspector').style.display = 'none'; }
@@ -236,12 +251,19 @@ function updateUI() {
 function buyUpgrade(idx, cost) {
     if(money >= cost) {
         money -= cost; activeTower.levels[idx]++;
-        const config = activeTower.type === 'gen' ? [{k: 'income', m: 1.5}, {k: 'rate', m: 0.85}] : [{k: 'dmg', m: 1.6}, {k: 'rate', m: 0.75}, {k: 'range', m: 1.25}];
-        activeTower[config[idx].k] *= config[idx].m; updateUI();
+        const cfg = activeTower.type === 'gen' ? [{k: 'income', m: 1.4}, {k: 'rate', m: 0.9}] : [{k: 'dmg', m: 1.5}, {k: 'rate', m: 0.8}, {k: 'range', m: 1.15}];
+        activeTower[cfg[idx].k] *= cfg[idx].m; updateUI();
     }
 }
-function sellUnit() { towers = towers.filter(t => t !== activeTower); money += 200; activeTower = null; updateUI(); }
-renderShop(); gameLoop();
+
+function sellUnit() { towers = towers.filter(t => t !== activeTower); money += 250; activeTower = null; updateUI(); }
+
+(function renderShop() {
+    const shop = document.getElementById('shop');
+    for(let id in units) shop.innerHTML += `<button class="tower-btn" onclick="prepBuild('${id}')">${units[id].name}<br>${units[id].cost}c</button>`;
+})();
+
+gameLoop();
 </script>
 </body>
 </html>
