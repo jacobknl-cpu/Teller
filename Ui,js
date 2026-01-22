@@ -1,0 +1,126 @@
+function setSpeed(s) {
+    gameSpeed = s;
+    [1,2,4].forEach(v => {
+        const btn = document.getElementById('s'+v);
+        if(btn) btn.classList.remove('active-speed');
+    });
+    document.getElementById('s'+s).classList.add('active-speed');
+}
+
+function toggleAuto() {
+    autoWave = document.getElementById('auto-wave').checked;
+}
+
+function startSector() {
+    if(isWaveActive) return;
+    wave++;
+    isWaveActive = true;
+    updateUI();
+    let count = 10 + Math.floor(wave * 1.5);
+    let spawnCount = 0;
+    let timer = setInterval(() => {
+        let hp = 1 + Math.floor(wave/4);
+        enemies.push({
+            x: path[0].x, 
+            y: path[0].y, 
+            hp: hp, 
+            maxHp: hp, 
+            speed: 1.4 + (wave*0.04), 
+            targetIdx: 1, 
+            dist: 0
+        });
+        spawnCount++;
+        if(spawnCount >= count) clearInterval(timer);
+    }, 600 / gameSpeed);
+}
+
+function updateUI() {
+    document.getElementById('money-txt').innerText = Math.floor(money);
+    document.getElementById('lives-txt').innerText = lives;
+    document.getElementById('wave-txt').innerText = wave;
+
+    if(activeTower) {
+        document.getElementById('inspector').style.display = 'block';
+        document.getElementById('ins-name').innerText = activeTower.name;
+        const list = document.getElementById('up-list');
+        list.innerHTML = '';
+
+        const cfg = activeTower.type === 'gen' ? 
+            [{n: 'Yield', k: 'income', m: 1.4}, {n: 'Frequency', k: 'rate', m: 0.9}] : 
+            [{n: 'Power', k: 'dmg', m: 1.5}, {n: 'FireRate', k: 'rate', m: 0.8}, {n: 'Range', k: 'range', m: 1.15}];
+
+        cfg.forEach((u, i) => {
+            let cost = Math.floor(activeTower.upBase * 0.7 * Math.pow(1.6, activeTower.levels[i]));
+            list.innerHTML += `
+                <div class="upgrade-card">
+                    <span>${u.n} (Lv ${activeTower.levels[i]})</span>
+                    <button class="up-btn" onclick="buyUpgrade(${i}, ${cost})" 
+                        ${money < cost || activeTower.levels[i] >= 10 ? 'disabled' : ''}>
+                        ${activeTower.levels[i] >= 10 ? 'MAX' : cost + 'c'}
+                    </button>
+                </div>`;
+        });
+    } else {
+        document.getElementById('inspector').style.display = 'none';
+    }
+}
+
+function buyUpgrade(idx, cost) {
+    if(money >= cost) {
+        money -= cost;
+        activeTower.levels[idx]++;
+        const cfg = activeTower.type === 'gen' ? 
+            [{k: 'income', m: 1.4}, {k: 'rate', m: 0.9}] : 
+            [{k: 'dmg', m: 1.5}, {k: 'rate', m: 0.8}, {k: 'range', m: 1.15}];
+        
+        activeTower[cfg[idx].k] *= cfg[idx].m;
+        updateUI();
+    }
+}
+
+function prepBuild(id) {
+    selectedType = id;
+    activeTower = null;
+    updateUI();
+}
+
+function confirmBuild() {
+    if(money >= units[selectedType].cost) {
+        money -= units[selectedType].cost;
+        towers.push({
+            ...units[selectedType], 
+            x: pendingPos.x, 
+            y: pendingPos.y, 
+            type: selectedType, 
+            levels: [0,0,0], 
+            timer: 0, 
+            kills: 0, 
+            upBase: units[selectedType].cost, 
+            shock: 0
+        });
+        cancelBuild();
+    }
+}
+
+function cancelBuild() {
+    selectedType = null;
+    pendingPos = null;
+    document.getElementById('confirm-ui').style.display = 'none';
+    updateUI();
+}
+
+function sellUnit() {
+    towers = towers.filter(t => t !== activeTower);
+    money += Math.floor(activeTower.upBase * 0.5);
+    activeTower = null;
+    updateUI();
+}
+
+// Initialisering
+(function init() {
+    const shop = document.getElementById('shop');
+    for(let id in units) {
+        shop.innerHTML += `<button class="tower-btn" onclick="prepBuild('${id}')">${units[id].name}<br>${units[id].cost}c</button>`;
+    }
+    updateUI();
+})();
